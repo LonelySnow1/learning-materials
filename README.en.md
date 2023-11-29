@@ -2,7 +2,7 @@
 
 #### Description
 
-Materials that may be used in the study.
+The various notes taken during the study can be further understood in the blog
 
 #### CSDN
 
