@@ -76,22 +76,23 @@ public class ServletContainersInitConfig extends AbstractDispatcherServletInitia
   //加载Spring容器配置
   @Override
   protected WebApplicationContext createRootApplicationContext() {
-    return null;
+     AnnotationConfigWebApplicationContext ctx = new AnnotationConfigWebApplicationContext();
+     ctx.register(SpringConfig.class);
+     return ctx;
   }
 }
 ```
 
 ```java
 //MVC配置类
+
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 //3.创建SpringMvc的配置文件，加载controller对应的bean
 @Configuration
-@ComponentScan("com.itheima.controller")
-public class SpringMvcConfig {
-
-}
+@ComponentScan("com.LonelySnow.controller")
+public class SpringMvcConfig { }
 ```
 
 ### 入门案例工作流程分析
@@ -110,5 +111,75 @@ public class SpringMvcConfig {
 4. 匹配对应方法
 5. 执行方法
 6. 有@ResponseBody就将返回值返回给请求方
+---
+## controller加载控制与业务bean加载控制
+* springMVC相关bean 
+* spring控制的bean
+  * 业务bean Service
+  * 功能bean DataSource等
 
+**功能不同，如何避免Spring错误加载到SpringMVC的bean？**
 
+——加载spring控制的bean的时候排除掉SpringMVC控制的Bean
+
+* SpringMVC相关bean的加载控制
+  * 均在对应的controller包内
+* Spring相关bean加载控制
+  1. 扫描范围排除掉controller包
+  2. 扫描范围精确到对应的service包、dao包 
+  3. 不区分，都加载到同一个环境中
+
+### 注解
+* @ComponentScan
+  * 类型：类注解
+  * 属性：
+    * excludeFilters:排除指定的bean【需要指定type与classes】
+    * includeFilters:加载指定的bean【需要指定type与classes】
+```java
+@Configuration
+//方法一 只加载指定包
+@ComponentScan({"com.LonelySnow.service", "com.LonelySnow.dao"})
+//方法二 排除指定包
+@ComponentScan(value = "com.LonelySnow",
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ANNOTATION,//按注解过滤
+                classes = Controller.class//过滤@Controller的注解
+        )
+)
+public class SpringConfig { }
+```
+
+**注意事项**
+在Main方法中使用bean的时候，若使用register，则需要额外refresh()
+```java
+public class App {
+    public static void main(String[] args) {
+//        AnnotationConfigApplicationContext ctx  = new AnnotationConfigApplicationContext(SpringConfig.class);
+        AnnotationConfigApplicationContext ctx  = new AnnotationConfigApplicationContext();
+        ctx.register(SpringConfig.class);
+        ctx.refresh();
+        System.out.println(ctx.getBean(UserController.class));
+    }
+}
+```
+### 简化web配置类
+```java
+public class ServletContainersInitConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class[]{SpringConfig.class};
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class[]{SpringMvcConfig.class};
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/"};
+    }
+}
+```
+---
