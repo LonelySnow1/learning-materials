@@ -8,20 +8,20 @@
 
 ## 入门案例
 ### 注解
-* @Controller
+* ####  @Controller
   * 类型：类注解
   * 位置：SpringMVC控制器类上方
   * 作用：设定核心控制器bean
 
 
-* @RequestMapping
+* #### @RequestMapping
   * 类型:方法注解
   * 位置:SpringMVC控制器方法请求访问路径
   * 作用:设置当前控制器方法请求访问路径
   * 参数:请求访问路径
 
 
-* @ResponseBody
+* #### @ResponseBody
   * 类型：方法注解
   * 位置：SpringMVC控制器方法定义上方
   * 作用：设置当前控制器方法响应内容为当前返回值，无需解析
@@ -129,7 +129,7 @@ public class SpringMvcConfig { }
   2. 扫描范围精确到对应的service包、dao包 
   3. 不区分，都加载到同一个环境中
 
-### 注解
+### 注解——@ComponentScan
 * @ComponentScan
   * 类型：类注解
   * 属性：
@@ -189,7 +189,7 @@ public class ServletContainersInitConfig extends AbstractAnnotationConfigDispatc
 —— 设置模块名作为请求路径前缀
 
 ## 请求映射路径
-### 注解
+### 注解——@RequestMapping
 * @RequestMapping
   * 类型：方法注解，类注解
   * 位置：位于SpringMVC控制器方法定义的商法
@@ -266,7 +266,7 @@ public class ServletContainersInitConfig extends AbstractAnnotationConfigDispatc
     * 与数组传参时相同，接收时需要在集合前加上@RequestParam绑定参数关系
     * 不绑定会默认将集合当作对象对立，由于集合是个接口，找不到init方法，报错
 
-  ### 注解
+  ### 注解——@RequestParam
 * @RequestParam
   * 类型：形参注解
   * 位置：MVC控制器方法形参定义之前
@@ -308,6 +308,14 @@ Body->raw->JSON
 
 ### 日期类型参数传递
 对于不同格式的日期参数可以使用@DateTimeFormat来指定接收方式
+
+#### 注解——@DateTimeFormat
+* @DateTimeFormat
+  * 类型：形参注释
+  * 位置：SpringMVC控制器方法形参前面
+  * 作用：设定日期时间型数据格式
+  * 属性：pattern：日期时间格式字符串
+
 ```java
 @Controller
 @RequestMapping("/user")
@@ -321,6 +329,127 @@ public class UserController {
     System.out.println("参数传递\"yyyy-MM-dd\" ===>" +date1);
     System.out.println("参数传递\"yyyy-MM-dd HH:mm:ss \" ===>" +date2);
     return "{'name':'Date'}";
+  }
+}
+```
+#### 类型转换器
+* Converter接口
+  * 请求参数年龄数据
+  * 日期格式转换
+* EnableWebMvc功能之一：根据类型匹配对应的类型转化器
+
+## 响应
+* 响应页面 —— 只有在不加请求路径前缀的时候可以用
+* 响应数据
+  * 文本数据
+  * json数据——直接return 对象就可以，自动转json
+
+类型转换器 
+
+httpMessageConverter
+
+---
+
+# REST风格
+## 简介
+### REST：表现形式状态转化
+  * 传统风格资源描述形式
+    * ```https://localhost/user/getById?id=1```
+    * ```https://localhost/user/save```
+  * REST风格描述形式
+    * ```https://localhost/user/1```
+    * ```https://localhost/user```
+### 优点
+  * 隐藏资源的访问行为，无法通过地址得知对资源的何种操作
+  * 书写简化
+### REST风格简介
+  * 按照REST风格访问资源时使用行为动作区分对资源进行了何种操作
+    * ```https://localhost/user```     GET（查询）
+    * ```https://localhost/user```     PUT（修改）
+    * ```https://localhost/user```     POST（新增/保存）
+    * ```https://localhost/user```     DELETE（删除）
+  * 根据REST风格对资源进行访问称为RESTful
+
+注：
+  * 上述行为是约定方式，而不是规范，可以打破
+  * 描述的模块名称通常使用复数，也就是加s，表示此类资源
+
+## 入门案例
+### 流程
+1. 设定http请求动作（动词）
+   * 增——post
+   * 删——delete
+   * 改——put
+   * 查——get
+2. 设定路径参数（路径变量）
+
+### 注解
+* #### @RequestMapping
+  * 属性：
+    * value：访问路径
+    * method：http请求动作，标准动作
+* #### @PathVariable
+  * 作用：绑定路径参数与处理器方法形参间的关系，要求路径参数名与形参名一一对应
+
+```java
+@Controller
+public class UserController {
+
+    @RequestMapping(value = "/users",method = RequestMethod.POST)
+    @ResponseBody
+    public String save(){
+        System.out.println("user save ...");
+        return "{'module':'user'}";
+    }
+
+    @RequestMapping(value = "/users/{id}",method = RequestMethod.DELETE)
+    @ResponseBody
+    public String delete(@PathVariable Integer id){
+        System.out.println("user delete ..."+id);
+        return "{'module':'delete'}";
+    }
+}
+```
+
+## 三个注解参数的区分
+——@RequestBody  @RequestParam @PathVariable
+* 区别
+  * @RequestParam 用于接收url地址传参或表单传参
+  * @RequestBody 用于接收json数据
+  * @PathVariable 用于接收路径参数，使用{参数名称}描述路径参数
+* 应用
+  * 后期开发中，发送请求超过一个时，以json为主，@RequestBody 
+  * 非json数据 @RequestParam
+  * 采用RESTful开发，且参数数量较少，使用@PathVariable可传递id值
+
+## RESTful快速开发
+### 注解
+* #### @RestController
+  * 类型：类注解
+  * 位置：在RESTful开发控制器类定义上方
+  * 作用：等同于@Controller + @ResponseBody
+* #### @GetMapping @PostMapping ...
+  * 方法注解
+  * 作用：代替原有的@RequestMapping
+```java
+//@Controller
+//@ResponseBody
+@RestController
+@RequestMapping(value = "/books")
+public class BookController {
+
+  //    @RequestMapping(method = RequestMethod.POST)
+  @PostMapping
+  public String save() {
+    System.out.println("book save ...");
+    return "{'module':'springmvc'}";
+  }
+
+  //    @RequestMapping(value = "/{id}",method = RequestMethod.DELETE)
+  @DeleteMapping("/{id}")
+  public String delete(@PathVariable Integer id) {
+    System.out.println("book delete ..." + id);
+    return "{'module':'delete'}";
   }
 }
 ```
