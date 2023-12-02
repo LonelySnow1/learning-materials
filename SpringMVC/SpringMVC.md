@@ -183,3 +183,29 @@ public class ServletContainersInitConfig extends AbstractAnnotationConfigDispatc
 }
 ```
 ---
+# 请求与响应 
+**团队多人开发，每人设置不同的请求路径，冲突问题如何解决？**
+
+—— 设置模块名作为请求路径前缀
+
+## 请求映射路径
+### 注解
+* @RequestMapping
+  * 类型：方法注解，类注解
+  * 位置：位于SpringMVC控制器方法定义的商法
+  * 作用：设置当前控制器方法的请求访问路径，如果设置在类上就是设置路径前缀
+```java
+@Controller
+@RequestMapping("/book") // 设置访问路径前缀
+public class BookController {
+    //2.2设置当前操作的访问路径
+    @RequestMapping("/save")
+    //2.3设置当前操作的返回值类型
+    @ResponseBody
+    public String save(){
+        System.out.println("book save ...");
+        return "{'module':'springmvc'}";
+    }
+}
+```
+
