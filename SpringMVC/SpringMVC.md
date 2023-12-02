@@ -204,8 +204,123 @@ public class BookController {
     @ResponseBody
     public String save(){
         System.out.println("book save ...");
-        return "{'module':'springmvc'}";
+        return "{'module':'book'}";
     }
+}  
+```
+
+## 请求方式
+### get请求
+直接链接后缀参数就行
+```
+http://localhost/user/commonParam?name=lonelysnow&age=12
+```
+### post请求
+form表单post请求传参，表单参数名与形参变量名相同即可
+
+在Body中的x-www-form-urlencoded设置参数
+
+## 处理请求（不区分get，post）
+```java
+@Controller
+@RequestMapping("/user")
+public class UserController {
+  @RequestMapping("/commonParam")
+  @ResponseBody
+  public String commonParam(String name,int age){
+    System.out.println("参数传递 ===>" + name);
+    System.out.println("参数传递 ===>" + age);
+    return "{'name':'commonParam'}";
+  }
 }
 ```
 
+
+### 处理post中文请求乱码问题
+为web容器添加过滤器并指定字符集，Spring-web包中提供了专用的字符过滤器
+```java
+public class ServletContainersInitConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
+    //在web配置类中添加如下代码
+    @Override
+    protected Filter[] getServletFilters() {
+    CharacterEncodingFilter filter = new CharacterEncodingFilter();
+    filter.setEncoding("UTF-8");
+    return new Filter[]{filter};
+  }
+}
+```
+### 请求参数-普通类型
+* 参数种类
+  * 普通参数
+    * url地址传参，参数名与形参变量名相同，定义形参即可传参
+    * 若不匹配，使用@RequestParam直接指定参数名
+  * POJO参数：实体类
+    * 请求参数名与形参属性名相同，定义pojo类型即可接收参数
+  * 嵌套pojo参数
+    * 请求参数名与形参对象属性名相同，按照对象层次结构关系即可接收嵌套pojo属性参数
+    * ``` http://localhost/user/pojo?name=lonelysnow&age=13&add.name=beijing&add.city=beijing ```
+  * 数组参数
+    * 请求参数名与形参对象属性名相同起额请求为多个，定义数组类型形参即可接收参数
+    * ```http://localhost/user/hobby?likes=1&likes=2&likes=3```
+  * 集合
+    * 与数组传参时相同，接收时需要在集合前加上@RequestParam绑定参数关系
+    * 不绑定会默认将集合当作对象对立，由于集合是个接口，找不到init方法，报错
+
+  ### 注解
+* @RequestParam
+  * 类型：形参注解
+  * 位置：MVC控制器方法形参定义之前
+  * 作用：绑定请求参数与处理器方法间的关系
+  * 参数：
+    * required： 是否为必传参数
+    * defaultValue：参数默认值
+```java
+@Controller
+@RequestMapping("/user")
+public class UserController {
+  @RequestMapping("/commonParam")
+  @ResponseBody
+  public String commonParam(@RequestParam("username") String name, int age) {
+    System.out.println("参数传递 ===>" + name);
+    System.out.println("参数传递 ===>" + age);
+    return "{'name':'commonParam'}";
+  }
+}
+```
+### 请求参数（JSON）
+**发送**
+
+Body->raw->JSON
+
+**接收**
+
+1. 
+2. 在pom中导入对应坐标
+```xml
+      <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <version>2.15.0</version>
+      </dependency>
+```
+2. 在SpringMvcConfig配置类中加入注解 @EnableWebMvc ——自动转换功能的支持
+3. 在控制器方法形参前加入@RequestBody
+
+### 日期类型参数传递
+对于不同格式的日期参数可以使用@DateTimeFormat来指定接收方式
+```java
+@Controller
+@RequestMapping("/user")
+public class UserController {
+  @RequestMapping("/Date")
+  @ResponseBody
+  public String Date(Date date,
+                     @DateTimeFormat(pattern = "yyyy-MM-dd") Date date1,
+                     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date date2){
+    System.out.println("参数传递 ===>" +date);
+    System.out.println("参数传递\"yyyy-MM-dd\" ===>" +date1);
+    System.out.println("参数传递\"yyyy-MM-dd HH:mm:ss \" ===>" +date2);
+    return "{'name':'Date'}";
+  }
+}
+```
