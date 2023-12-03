@@ -453,3 +453,206 @@ public class BookController {
   }
 }
 ```
+---
+# SSM整合
+## 整合流程
+  1. 创建工程
+  2. SSM整合
+     * Spring
+       * SpringConfig
+     * MyBatis
+       * MybatisConfig
+       * JdbcConfig
+       * jdbc.properties
+     * SpringMVC
+       * ServletConfig
+       * SpringMvcConfig
+  3. 功能模块
+     * 表与实体类
+     * dao（接口+自动代理）
+     * service（接口+实现类）
+       * 业务层接口测试（整合JUnit）
+     * controller
+       * 表现层接口测试（PostMan）
+
+### 示例代码
+**配置**
+* pom.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.example</groupId>
+  <artifactId>SSM</artifactId>
+  <packaging>war</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>5.2.10.RELEASE</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>5.2.10.RELEASE</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>5.2.10.RELEASE</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>3.5.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis-spring</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.47</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>druid</artifactId>
+      <version>1.1.16</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.tomcat.maven</groupId>
+        <artifactId>tomcat7-maven-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <port>80</port>
+          <path>/</path>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
+```
+* SpringConfig
+```java
+@Configuration
+@ComponentScan({"com.lonelysnow.service"})
+@PropertySource("classpath:jdbc.properties")
+@Import({JdbcConfig.class,MyBatisConfig.class})
+public class SpringConfig {
+}
+```
+* MybatisConfig
+```java
+public class MyBatisConfig {
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSource){
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dataSource);
+        factoryBean.setTypeAliasesPackage("com.lonelysnow.domain");
+        return factoryBean;
+    }
+    @Bean
+    public MapperScannerConfigurer mapperScannerConfigurer(){
+        MapperScannerConfigurer msc = new MapperScannerConfigurer();
+        msc.setBasePackage("com.lonelysnow.dao");
+        return msc;
+    }
+}
+```
+* JdbcConfig
+```java
+public class JdbcConfig {
+  @Value("${jdbc.driver}")
+  private String driver;
+  @Value("${jdbc.url}")
+  private String url;
+  @Value("${jdbc.username}")
+  private String username;
+  @Value("${jdbc.password}")
+  private String password;
+
+  @Bean
+  public DataSource dataSource(){
+    DruidDataSource dataSource = new DruidDataSource();
+    dataSource.setDriverClassName(driver);
+    dataSource.setUrl(url);
+    dataSource.setUsername(username);
+    dataSource.setPassword(password);
+    return dataSource;
+  }
+}
+```
+
+* jdbc.properties
+```properties
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql:///ssm_db?useSSL=false
+jdbc.username=root
+jdbc.password=123456
+```
+
+* ServletConfig
+```java
+public class ServletConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
+  @Override
+  protected Class<?>[] getRootConfigClasses() {
+    return new Class[]{SpringConfig.class};
+  }
+
+  @Override
+  protected Class<?>[] getServletConfigClasses() {
+    return new Class[]{SpringMvcConfig.class};
+  }
+
+  @Override
+  protected String[] getServletMappings() {
+    return new String[]{"/"};
+  }
+}
+```
+
+* SpringMvcConfig
+```java
+@Configuration
+@ComponentScan("com.lonelysnow.controller")
+@EnableWebMvc
+public class SpringMvcConfig { }
+```
+
+
+
+
