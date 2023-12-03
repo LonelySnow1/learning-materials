@@ -653,6 +653,179 @@ public class ServletConfig extends AbstractAnnotationConfigDispatcherServletInit
 public class SpringMvcConfig { }
 ```
 
+**功能模块**
+**模型**
+* book
+```java
+package com.lonelysnow.domain;
+
+public class Book {
+    private Integer id;
+    private String type;
+    private String name;
+    private String description;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                '}';
+    }
+}
+```
+**数据层标准开发**
+* BookDao
+```java
+public interface BookDao {
+    @Insert("insert into tbl_book values(null,#{type},#{name},#{description})")
+    public void save(Book book);
+    @Update("update tbl_book set type = #{type},name = #{name}, description = #{description} where id = #{id} ")
+    public void update(Book book);
+    @Delete("delete from tbl_book where id = #{id}")
+    public void delete(Integer id);
+    @Select("select * from tbl_book where id = #{id}")
+    public Book getById(Integer id);
+    @Select("select * from tbl_book")
+    public List<Book> getAll();
+
+}
+```
+**业务层标准开发**
+* BookService
+```java
+@Transactional
+public interface BookService {
+
+    /**
+     * 保存
+     * @param book
+     * @return
+     */
+    public boolean save(Book book);
+
+    /**
+     * 修改
+     * @param book
+     * @return
+     */
+    public boolean update(Book book);
+
+    /**
+     * 按id删除
+     * @param id
+     * @return
+     */
+    public boolean delete(Integer id);
+
+    /**
+     * 按id查找
+     * @param id
+     * @return
+     */
+    public Book getById(Integer id);
+
+    /**
+     * 查找全部
+     * @return
+     */
+    public List<Book> getAll();
+}
+```
+
+* BookServiceImpl
+```java
+@Service
+public class BookServiceImpl implements BookService {
+    @Autowired
+    private BookDao bookDao;
+
+    @Override
+    public boolean save(Book book) {
+        bookDao.save(book);
+        return true;
+    }
+
+    @Override
+    public boolean update(Book book) {
+        bookDao.update(book);
+        return true;
+    }
+
+    @Override
+    public boolean delete(Integer id) {
+        bookDao.delete(id);
+        return true;
+    }
+
+    @Override
+    public Book getById(Integer id) {
+        return bookDao.getById(id);
+    }
+
+    @Override
+    public List<Book> getAll() {
+        return bookDao.getAll();
+    }
+}
+```
+
+**测试接口**
+* BookServiceTest
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfig.class)
+public class BookServiceTest {
+    @Autowired
+    private BookService bookService;
+
+    @Test
+    public void testGetById(){
+        Book book = bookService.getById(1);
+        System.out.println(book);
+    }
+
+    @Test
+    public void testGetAll(){
+        List<Book> ls = bookService.getAll();
+        System.out.println(Arrays.toString(ls.toArray()));
+    }
+}
+```
 
 
 
