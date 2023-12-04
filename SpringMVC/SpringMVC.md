@@ -893,7 +893,36 @@ public class Code {
     public static final Integer GET_ERR = 20040;
 }
 ```
+---
+## 异常处理器
+* 程序开发过程中不可避免的会出现异常
+### 异常出现的常见位置与常见诱因
+* 框架内部抛出异常 —— 使用不合规
+* 数据层抛出异常 —— 外部服务器故障（如：访问服务器超时）
+* 业务层抛出异常 —— 因业务逻辑书写错误导致 （如：遍历业务书写操作，导致索引异常）
+* 表现层抛出异常 —— 因数据收集，校验等规则导致 （如：不匹配的数据类型间导致异常）
+* 工具类抛出异常 —— 因工具类书写不够健壮导致（如： 必要释放的链接长期未释放）
 
+**各个层级都会抛异常，那么处理异常的代码写在那一层呢？**
+——所有异常都放到表现层处理
+
+**表现层处理异常，每个方法单独书写，代码书写量巨大且意义不强，如何解决？**
+——AOP思想
+
+声明异常处理器——因为是在表现层处理异常，所以最好把处理器放在表现层
+* ProjectExceptionConfig
+  * 此方法可以根据异常的不同，制作多个方法分别处理对应的异常
+```java
+@RestControllerAdvice
+public class ProjectExceptionConfig {
+    @ExceptionHandler(Exception.class)
+    public Result doException(Exception ex){
+        return new Result(0721,null,"抓到异常了喵~");
+    }
+}
+```
+---
+## 项目异常处理方案  
 
 
 
