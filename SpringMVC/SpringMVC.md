@@ -1044,6 +1044,13 @@ public class SpringMvcSupport extends WebMvcConfigurationSupport {
     }
 }
 ```
+---
+# 拦截器
+## 拦截器概念
+* 拦截器：是一种动态拦截方法调用的机制，在SpringMVC中动态拦截控制器方法的执行
+* 作用：
+  * 在指定的方法调用前后执行预先设定的代码
+  * 阻止原始方法的执行
 
 
 
