@@ -1026,6 +1026,24 @@ public class ProjectExceptionConfig {
     }
 }
 ```
+---
+# 前后台联调
+## 页面不加载数据怎么办
+* SpringMvcSupport
+  * 配置排除路径,放在config路径下
+```java
+@Configuration
+public class SpringMvcSupport extends WebMvcConfigurationSupport {
+    //MVC6版本实现接口WebMvcConfigurer,使用方法一样
+    @Override
+    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/pages/**").addResourceLocations("/pages/");
+        registry.addResourceHandler("/css/**").addResourceLocations("/css/");
+        registry.addResourceHandler("/js/**").addResourceLocations("/js/");
+        registry.addResourceHandler("/plugins/**").addResourceLocations("/plugins/");
+    }
+}
+```
 
 
 
