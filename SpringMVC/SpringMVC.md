@@ -803,6 +803,41 @@ public class BookServiceImpl implements BookService {
     }
 }
 ```
+* BookController
+```java
+@RestController
+@RequestMapping("/books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    @PostMapping
+    public boolean save(@RequestBody Book book) {
+        return bookService.save(book);
+    }
+
+    @PutMapping
+    public boolean update(@RequestBody Book book) {
+        return bookService.update(book);
+    }
+
+    @DeleteMapping("/{id}")
+    public boolean delete(@PathVariable Integer id) {
+        return bookService.delete(id);
+    }
+
+    @GetMapping("/{id}")
+    public Book getById(@PathVariable Integer id) {
+        return bookService.getById(id);
+    }
+
+    @GetMapping
+    public List<Book> getAll() {
+        return bookService.getAll();
+    }
+}
+```
 
 **测试接口**
 * BookServiceTest
@@ -826,6 +861,40 @@ public class BookServiceTest {
     }
 }
 ```
+---
+## 表现层数据封装
+* 前端接收数据格式——创建结果模型类，封装数据到data中
+* 前端接收数据格式——封装特殊消息到message（msg）属性中
+### 设置统一数据返回结果类
+**没有统一的标准，但需要跟前端沟通好**
+
+**因为是表现层的格式类，所以做好放在Controller类中**
+* Result_结果类
+  * 根据需求添加getter setter方法和构造方法
+```java
+public class Result {
+    private Object data;
+    private Integer code;
+    private String msg;
+}
+```
+
+* Code——注明使用的标准码
+```java
+public class Code {
+    public static final Integer SAVE_OK = 20011;
+    public static final Integer DELETE_OK = 20021;
+    public static final Integer UPDATE_OK = 20031;
+    public static final Integer GET_OK = 20041;
+
+    public static final Integer SAVE_ERR = 20010;
+    public static final Integer DELETE_ERR = 20020;
+    public static final Integer UPDATE_ERR = 20030;
+    public static final Integer GET_ERR = 20040;
+}
+```
+
+
 
 
 
