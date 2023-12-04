@@ -923,6 +923,109 @@ public class ProjectExceptionConfig {
 ```
 ---
 ## 项目异常处理方案  
+### 项目异常分类
+* 业务异常(BusinessException)
+  * 规范的用户行为产生的异常
+  * 不规范的用户行为产生的异常
+* 系统异常(SystemException)
+  * 项目运行过程中可预计且无法避免的异常
+* 其他异常(Exception)
+  * 编程人员未预期到的异常
+### 项目异常处理方案
+* 业务异常
+  * 发送对应消息传递给用户，提醒操作规范
+* 系统异常
+  * 发送固定消息传递给用户，安抚用户
+  * 发送特定消息给运维人员，提醒维护
+  * 记录日志
+* 其他异常
+  * 发送固定消息给用户，安抚用户
+  * 发送特定消息给编程人员，提醒维护（纳入预期范围内）
+  * 记录日志
+
+### 具体步骤
+#### 1. 自定义项目异常
+放在异常文件夹下
+* SystemException
+```java
+public class SystemException extends RuntimeException {
+  private Integer code;
+
+  public Integer getCode() {
+    return code;
+  }
+
+  public void setCode(Integer code) {
+    this.code = code;
+  }
+
+  public SystemException(Integer code, String message) {
+    super(message);
+    this.code = code;
+  }
+
+  public SystemException(Integer code,String message, Throwable cause) {
+    super(message, cause);
+    this.code = code;
+  }
+}
+```
+#### 2.自定义异常编码
+* Code
+```java
+public class Code {
+    public static final Integer SAVE_OK = 20011;
+    public static final Integer DELETE_OK = 20021;
+    public static final Integer UPDATE_OK = 20031;
+    public static final Integer GET_OK = 20041;
+
+    public static final Integer SAVE_ERR = 20010;
+    public static final Integer DELETE_ERR = 20020;
+    public static final Integer UPDATE_ERR = 20030;
+    public static final Integer GET_ERR = 20040;
+
+    public static final Integer SYSTEM_ERR = 50001;
+    public static final Integer BUSINESS_ERR = 60001;
+
+}
+```
+
+#### 3.触发自定义异常
+```java
+@Service
+public class BookServiceImpl implements BookService {
+    @Autowired
+    private BookDao bookDao;
+    @Override
+    public List<Book> getAll() {
+        //将可能出现的异常进行包装，转换为自定义异常
+        try{
+            int i = 1/0;
+        }catch (Exception e){
+            throw new SystemException(Code.SYSTEM_ERR,"访问超时喵~",e);
+        }
+        return bookDao.getAll();
+    }
+}
+```
+#### 4.拦截并处理异常
+* ProjectExceptionConfig
+```java
+@RestControllerAdvice
+public class ProjectExceptionConfig {
+    @ExceptionHandler(Exception.class)
+    public Result doException(Exception ex){
+        return new Result(666,null,"抓到异常了喵~");
+    }
+    @ExceptionHandler(SystemException.class)
+    public Result SystemException(SystemException ex){
+        //记录日志
+        //发送消息给运维
+        //发送邮件给开发人员
+        return new Result(ex.getCode(),null,ex.getMessage());
+    }
+}
+```
 
 
 
