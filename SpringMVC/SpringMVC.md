@@ -1120,7 +1120,7 @@ public class SpringMvcConfig implements WebMvcConfigurer {
 }
 ```
 
-## 拦截器参数
+### 拦截器参数
 ```
 public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{}
 ```
@@ -1146,3 +1146,10 @@ public void afterCompletion(HttpServletRequest request, HttpServletResponse resp
 * 完成后处理
   * 参数
     * ex : 执行过程中出现异常对象，可以针对异常情况进行单独处理
+
+### 多拦截器执行顺序
+* 当配置多个拦截器时，形成拦截器链
+* 拦截器链的运行顺序参照拦截器添加顺序为准
+  * preHandle:与配置顺序相同
+  * preHandle:与配置顺序相反
+  * preHandle:与配置顺序相反
