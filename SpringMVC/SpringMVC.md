@@ -1,10 +1,10 @@
 # 初始SpringMVC
 ## SpringMVC概述
 * springMVC是一种表现层框架技术
-* SpringMVC是一种基于java实现MVC模型的轻量级web框架
-* 优点
-  * 使用简单，开发便捷（相比于Servlet）
-  * 灵活性强
+  * SpringMVC是一种基于java实现MVC模型的轻量级web框架
+  * 优点
+    * 使用简单，开发便捷（相比于Servlet）
+    * 灵活性强
 
 ## 入门案例
 ### 注解
@@ -98,25 +98,25 @@ public class SpringMvcConfig { }
 ### 入门案例工作流程分析
 启动服务器初始化流程
 1. 服务器启动，执行web容器启动配置类，初始化web容器
-2. 执行配置类中的createServletApplicationContext方法，创建WebApplicationContext对象
-3. 加载MVC配置类
-4. 执行@ComponentScan，加载对应的bean
-5. 加载控制器类，映射对应的方法
-6. 执行配置类中的getServletMappings方法，定义所有的请求都通过SpringMVC
+   1. 执行配置类中的createServletApplicationContext方法，创建WebApplicationContext对象
+   2. 加载MVC配置类
+   3. 执行@ComponentScan，加载对应的bean
+   4. 加载控制器类，映射对应的方法
+   5. 执行配置类中的getServletMappings方法，定义所有的请求都通过SpringMVC
 
 单次请求过程：
 1. 发送请求
-2. 交由MVC处理
-3. 解析请求路径
-4. 匹配对应方法
-5. 执行方法
-6. 有@ResponseBody就将返回值返回给请求方
+   1. 交由MVC处理
+   2. 解析请求路径
+   3. 匹配对应方法
+   4. 执行方法
+   5. 有@ResponseBody就将返回值返回给请求方
 ---
 ## controller加载控制与业务bean加载控制
 * springMVC相关bean 
-* spring控制的bean
-  * 业务bean Service
-  * 功能bean DataSource等
+  * spring控制的bean
+    * 业务bean Service
+    * 功能bean DataSource等
 
 **功能不同，如何避免Spring错误加载到SpringMVC的bean？**
 
@@ -124,10 +124,10 @@ public class SpringMvcConfig { }
 
 * SpringMVC相关bean的加载控制
   * 均在对应的controller包内
-* Spring相关bean加载控制
-  1. 扫描范围排除掉controller包
-  2. 扫描范围精确到对应的service包、dao包 
-  3. 不区分，都加载到同一个环境中
+  * Spring相关bean加载控制
+    1. 扫描范围排除掉controller包
+    2. 扫描范围精确到对应的service包、dao包 
+    3. 不区分，都加载到同一个环境中
 
 ### 注解——@ComponentScan
 * @ComponentScan
@@ -267,13 +267,13 @@ public class ServletContainersInitConfig extends AbstractAnnotationConfigDispatc
     * 不绑定会默认将集合当作对象对立，由于集合是个接口，找不到init方法，报错
 
   ### 注解——@RequestParam
-* @RequestParam
-  * 类型：形参注解
-  * 位置：MVC控制器方法形参定义之前
-  * 作用：绑定请求参数与处理器方法间的关系
-  * 参数：
-    * required： 是否为必传参数
-    * defaultValue：参数默认值
+  * @RequestParam
+    * 类型：形参注解
+    * 位置：MVC控制器方法形参定义之前
+    * 作用：绑定请求参数与处理器方法间的关系
+    * 参数：
+      * required： 是否为必传参数
+      * defaultValue：参数默认值
 ```java
 @Controller
 @RequestMapping("/user")
@@ -295,7 +295,7 @@ Body->raw->JSON
 **接收**
 
 1. 
-2. 在pom中导入对应坐标
+   1. 在pom中导入对应坐标
 ```xml
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -304,7 +304,7 @@ Body->raw->JSON
       </dependency>
 ```
 2. 在SpringMvcConfig配置类中加入注解 @EnableWebMvc ——自动转换功能的支持
-3. 在控制器方法形参前加入@RequestBody
+   1. 在控制器方法形参前加入@RequestBody
 
 ### 日期类型参数传递
 对于不同格式的日期参数可以使用@DateTimeFormat来指定接收方式
@@ -336,13 +336,13 @@ public class UserController {
 * Converter接口
   * 请求参数年龄数据
   * 日期格式转换
-* EnableWebMvc功能之一：根据类型匹配对应的类型转化器
+  * EnableWebMvc功能之一：根据类型匹配对应的类型转化器
 
 ## 响应
 * 响应页面 —— 只有在不加请求路径前缀的时候可以用
-* 响应数据
-  * 文本数据
-  * json数据——直接return 对象就可以，自动转json
+  * 响应数据
+    * 文本数据
+    * json数据——直接return 对象就可以，自动转json
 
 类型转换器 
 
@@ -356,11 +356,11 @@ httpMessageConverter
   * 传统风格资源描述形式
     * ```https://localhost/user/getById?id=1```
     * ```https://localhost/user/save```
-  * REST风格描述形式
-    * ```https://localhost/user/1```
-    * ```https://localhost/user```
+    * REST风格描述形式
+      * ```https://localhost/user/1```
+      * ```https://localhost/user```
 ### 优点
-  * 隐藏资源的访问行为，无法通过地址得知对资源的何种操作
+    * 隐藏资源的访问行为，无法通过地址得知对资源的何种操作
   * 书写简化
 ### REST风格简介
   * 按照REST风格访问资源时使用行为动作区分对资源进行了何种操作
@@ -1051,7 +1051,98 @@ public class SpringMvcSupport extends WebMvcConfigurationSupport {
 * 作用：
   * 在指定的方法调用前后执行预先设定的代码
   * 阻止原始方法的执行
+## 拦截器与过滤器的区别
+* 归属不同：Filter是关于天涯Servlet技术,Interceptor属于SpringMVC技术
+* 拦截内容不同: Filter对所有访问进行增强，Interceptor仅针对SpringMVC的访问进行增强
+## 入门案例
+### 使用步骤
+1. 声明拦截器的bean，并实现HandlerInterceptor接口（注意：扫描加载bean）
+* controller/Interceptor/ProgramInterceptor  
+```java
+@Component
+public class ProjectInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("preHandle");
+        return true; //false终止原始操作
+    }
 
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        System.out.println("postHandle");
+    }
 
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        System.out.println("afterCompletion");
+    }
+}
+```
+2. 定义配置类，继承WebMvcConfigurationSupport，实现addInterceptor方法,并设置拦截路径（注意：扫描加载配置）
+* SpringMvcSupport
+```java
+@Configuration
+public class SpringMvcSupport extends WebMvcConfigurationSupport {
+    //MVC6版本实现接口WebMvcConfigurer,使用方法一样
 
+    @Autowired
+    private ProjectInterceptor projectInterceptor;
+    
+    @Override
+    protected void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(projectInterceptor).addPathPatterns("/books","/books/*");
+    }
+}
+```
+**简化开发，直接省略SpringMvcSupport文件，将其功能转移到SpringMvcConfig文件下**
 
+注意：侵入式较强——与Spring强绑定
+```java
+@Configuration
+@ComponentScan({"com.lonelysnow.controller"})
+@EnableWebMvc
+public class SpringMvcConfig implements WebMvcConfigurer {
+    @Autowired
+    private ProjectInterceptor projectInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(projectInterceptor).addPathPatterns("/books","/books/*");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/pages/**").addResourceLocations("/pages/");
+        registry.addResourceHandler("/css/**").addResourceLocations("/css/");
+        registry.addResourceHandler("/js/**").addResourceLocations("/js/");
+        registry.addResourceHandler("/plugins/**").addResourceLocations("/plugins/");
+    }
+}
+```
+
+## 拦截器参数
+```
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{}
+```
+* 前置处理器
+  * 参数 
+    * request ： 请求对象
+    * response ： 响应对象
+    * handler ： 被调用的处理器对象，本质上是一个方法对象，对反射技术中的Method对象进行了再包装
+  * 返回值
+    * 返回值为false，被拦截的处理器将不执行
+
+```
+public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {}
+```
+
+* 后置处理器
+  * 参数
+    * modelAndView : 如果处理器执行完具有返回结果，可以读取到对应数据与页面信息，并进行调整
+
+```
+public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {}
+```
+* 完成后处理
+  * 参数
+    * ex : 执行过程中出现异常对象，可以针对异常情况进行单独处理
