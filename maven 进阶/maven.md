@@ -361,4 +361,125 @@ jdbc.password=123456
   * 纯数字版
 
 ---
-# Maven多环境开发
+# Maven多环境配置与应用
+## 多环境开发
+* maven提供配置多种环境的设定，帮助开发者使用过程中快速切换环境
+
+1. 配置多环境
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>Maven</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+<!--    配置多环境-->
+    <profiles>
+<!--     开发环境-->
+        <profile>
+            <id>env_dep</id>
+            <properties>
+                <jdbc.url>jdbc:mysql:///ssm_db?useSSL=false</jdbc.url>
+            </properties>
+        </profile>
+<!--    生产环境-->
+        <profile>
+            <id>env_pro</id>
+            <properties>
+                <jdbc.url>jdbc:mysql://127.2.2.2:3306/ssm_db?useSSL=false</jdbc.url>
+            </properties>
+<!--            设定为默认启用的环境-->
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+<!--    测试环境-->
+        <profile>
+            <id>env_test</id>
+            <properties>
+                <jdbc.url>jdbc:mysql://127.3.3.3:3306/ssm_db?useSSL=false</jdbc.url>
+            </properties>
+        </profile>
+    </profiles>
+
+<!--    让指定路径下的文可以使用pom中的属性-->
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+</project>
+```
+
+2. 使用多环境
+
+mvn 指令 -p 环境定义id  范例：
+
+```mvn install -p pro_env```
+
+## 跳过测试
+* 应用场景
+  * 功能更新中且没有开发完成
+  * 快速打包
+  * ......
+
+* 使用方式
+  * idea自带的maven功能
+  * maven插件
+  * maven语句
+  
+1. idea自带的maven功能
+
+![img_3.png](img_3.png)
+
+2.maven插件（细粒度控制跳过测试）
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>Maven</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+<!--    让指定路径下的文可以使用pom中的属性-->
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+<!--      跳过测试-->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <skipTests>false</skipTests><!--是否完全跳过测试-->
+                    <!--排除掉不参与测试的内容-->
+                    <excludes>
+                        <exclude>**/BookServiceTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+3. maven指令
+
+mvn 指令 -D skipTests
+
+```mvn install -D skipTests ```
