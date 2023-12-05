@@ -483,3 +483,12 @@ mvn 指令 -p 环境定义id  范例：
 mvn 指令 -D skipTests
 
 ```mvn install -D skipTests ```
+
+----
+# 私服
+## 私服简介
+* 私服是一台独立的服务器，用于解决团队内部的资源共享与资源同步问题
+
+* Nexus 
+  * Sonatype公司的一款maven私服产品
+  * 
