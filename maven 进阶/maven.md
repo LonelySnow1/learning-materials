@@ -236,3 +236,113 @@
 * 不同点：
   * 聚合是在当前模块中配置关系，聚合可以感知到参与聚合的模块有哪些
   * 继承是在子模块中配置关系，父模块无法感知哪写子模块继承了自己
+
+---
+# 属性
+## pom文件中使用属性
+* 定义属性-properties
+* 使用属性-${}
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>Maven</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+    </dependencies>
+
+<!--    定义属性-->
+    <properties>
+        <spring.version>5.2.9.RELEASE</spring.version>
+    </properties>
+</project>
+```
+## 资源文件中引用属性
+1. 定义属性
+2. 在pom中设属性生效范围
+3. 在资源文件中调用属性
+* pom.xml
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>Maven</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+  
+<!--    定义属性-->
+    <properties>
+        <jdbc.url>jdbc:mysql:///ssm_db?useSSL=false</jdbc.url>
+    </properties>
+<!--    让指定路径下的文可以使用pom中的属性-->
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory><!--这里用了一个maven的系统属性-->
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+</project>
+```
+* jdbc.properties
+  * 可定义多个，这里只定义一个用于举例说明 
+```
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=${jdbc.url}
+jdbc.username=root
+jdbc.password=123456
+```
+4. 配置maven打war包时不检查web.xml是否存在
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.example</groupId>
+  <artifactId>SSM</artifactId>  
+  <packaging>war</packaging>
+  <version>1.0-SNAPSHOT</version>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+```
+## 其他属性
+![img_2.png](img_2.png)
