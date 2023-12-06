@@ -491,4 +491,72 @@ mvn 指令 -D skipTests
 
 * Nexus 
   * Sonatype公司的一款maven私服产品
-  * 
+
+## Nexus安装与启动
+* 在nexus-3.62.0-01-win64\nexus-3.62.0-01\bin 目录下启用cmd
+* 输入命令行启动服务器
+``` nexus.exe /run nexus```
+* 访问服务器，在浏览器中输入 ``` http://localhost:8081```
+* 修改基础配置信息
+  * 安装路径下etc目录中nexus-default.properties文件保存有nexus基础配置信息，例如默认访问端口
+* 修改服务器运行配置信息
+  * 安装路径下bin目录中，nexus.vmoptions文件保存有nexus服务器启动对应的配置信息，例如默认占用空间
+
+## 私服资源操作流程分析
+![img_4.png](img_4.png)
+
+## 私服仓库分类
+![img_5.png](img_5.png)
+
+## 私服仓库配置
+1. 在私服管理页面>设置界面>Repositories>create repository —— 新建宿主仓库，
+一般新建两个，（snapshot,release）
+2. 将新建的宿主仓库纳入到仓库组中，在maven-public仓库组的group选项中将两个仓库纳入，并save
+3. 在maven配置文件中设置访问私服权限以及私服访问路径
+* setting.xml
+```xml
+<setting>
+	<!-- 配置访问私服的权限 -->
+<servers>
+    <server>
+      <id>lonelysnow-release</id> <!-- 私服中的服务器ID -->
+      <username>admin</username>
+      <password>123456</password>
+    </server>
+    <server>
+      <id>lonelysnow-snapshot</id> 
+      <username>admin</username>
+      <password>123456</password>
+    </server>
+</servers>
+
+        <!-- 私服访问路径 -->
+<mirrors>
+    <mirror>
+        <id>maven-public</id> <!--仓库组ID-->
+        <mirrorOf>*</mirrorOf>
+        <url>http://localhost:8081/repository/maven-public/</url>
+    </mirror>
+</mirrors>
+  
+</setting>
+```
+4. 工程上传到私服服务器设置 
+* pom.xml
+```xml
+<!--    配置当前工程保存在私服中的具体位置-->
+    <distributionManagement>
+        <repository>
+            <id>lonelysnow-release</id>
+            <url>http://localhost:8081/repository/lonelysnow-release/</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>lonelysnow-snapshot</id>
+            <url>http://localhost:8081/repository/lonelysnow-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
+```
+
+5. 发布命令
+```mvn deploy ```
