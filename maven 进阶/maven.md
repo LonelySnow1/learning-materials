@@ -57,8 +57,8 @@
   * 特殊优先： 当同级配置了相同资源的不同版本，后配置的覆盖先配置的
 
 **如何直观的显示直接/间接依赖**
-![img.png](img.png)
-![img_1.png](img_1.png)
+![img.png](material/img.png)
+![img_1.png](material/img_1.png)
 
 ## 可选依赖
 * 可选依赖是指对外隐藏所依赖的资源——不透明,我的依赖不给别人用
@@ -345,7 +345,7 @@ jdbc.password=123456
 </project>
 ```
 ## 其他属性
-![img_2.png](img_2.png)
+![img_2.png](material/img_2.png)
 
 ##  版本管理
 * 工程版本
@@ -437,7 +437,7 @@ mvn 指令 -p 环境定义id  范例：
   
 1. idea自带的maven功能
 
-![img_3.png](img_3.png)
+![img_3.png](material/img_3.png)
 
 2.maven插件（细粒度控制跳过测试）
 ```xml
@@ -503,10 +503,10 @@ mvn 指令 -D skipTests
   * 安装路径下bin目录中，nexus.vmoptions文件保存有nexus服务器启动对应的配置信息，例如默认占用空间
 
 ## 私服资源操作流程分析
-![img_4.png](img_4.png)
+![img_4.png](material/img_4.png)
 
 ## 私服仓库分类
-![img_5.png](img_5.png)
+![img_5.png](material/img_5.png)
 
 ## 私服仓库配置
 1. 在私服管理页面>设置界面>Repositories>create repository —— 新建宿主仓库，
