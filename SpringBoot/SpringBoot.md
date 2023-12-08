@@ -195,3 +195,129 @@ likes:
 ```
 
 ### 读取数据的方式
+* 使用@Value读取单个数据，属性名引用方式 ${一级属性名.二级属性名}
+* 封装全部数据到Environment对象
+* 使用自定义对象封装数据
+  * 关联数据时，自定义类中要使用  @ConfigurationProperties(prefix = "目标数据名")
+
+BookController —— 调用
+```java
+@RestController
+@RequestMapping("/books")
+public class BookController {
+
+  @Value("${testA}")
+  private int testA;
+  @Value("${enterprise.C[0]}")
+  private String C;
+  @Value("${enterprise.C[1]}")
+  private String A;
+  
+  @Autowired
+  private Environment environment;
+
+  @Autowired
+  private Enterprise enterprise;
+
+  @GetMapping
+  public String get() {
+    System.out.println(environment);
+    System.out.println("________________________________________");
+    System.out.println(enterprise);
+    return "hello world";
+  }
+}
+```
+domain/Enterprise —— 自定义对象
+```java
+@Component
+@ConfigurationProperties(prefix = "enterprise") 
+public class Enterprise {
+    private String A;
+    private Integer B;
+    private String D;
+    private String[] C;
+
+//  ......
+//  getter setter方法省略
+}
+```
+
+application.yml
+```yaml
+testA: 100
+
+enterprise:
+  A: AAA
+  B: 200
+  D: BBB
+  C:
+    - 前端
+    - aa
+    - ba
+    - ca
+    - da
+```
+
+## 多环境运行
+### 多环境配置
+* yaml/yml格式 —— 不区分环境名称的先后顺序
+```yaml
+spring:
+  profiles:
+    active: dev
+
+---
+server:
+  port: 80
+spring:
+  config:
+    activate:
+      on-profile: dev
+---
+
+server:
+  port: 81
+spring:
+  config:
+    activate:
+      on-profile: pro
+---
+
+server:
+  port: 82
+spring:
+  config:
+    activate:
+      on-profile: test
+```
+
+* application.properties —— 主配置文件
+```properties
+#设定需要的运行环境
+spring.profiles.active=dev
+```
+* application-dev.properties —— 新建配置文件，专用来更改环境
+```properties
+server.port=82
+```
+### 多环境启动命令
+* cmd带参数启动SpringBoot
+  * 先执行clean操作清空上一次的操作影响
+  * 在执行package将程序封包
+  * 在jar包路径下运行cmd
+
+``` java -jar SpringBoot-0.0.1-SNAPSHOT.jar --spring.profiles.active=XXX(环境名称)```
+
+``` java -jar SpringBoot-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev --server.port=8081``` 可运行
+
+``` java -jar SpringBoot-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev --server.port=8081 --server.port=8082``` 会报错
+
+注意事项：
+1. 如果yml/properties文件中有汉字的话，打包会报错，可以先去idea中修改文件编码格式为UTF-8
+2. 如果输入的配置指令错误，程序也不会报错，会跳过当前这条配置，如果未读到有效配置，则使用默认配置
+3. 多条配置重复时会报错
+
+* Spring配置文件加载顺序，优先级从高到低
+
+![img_4.png](img_4.png)
