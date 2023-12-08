@@ -311,6 +311,23 @@
     </build>
 </project>
 ```
+
+还可以使用插件使得外部文件可以访问maven属性
+```xml
+    <build>
+        <plugins>
+<!--            允许外部文件读取pom中的属性-->
+            <plugin>
+                <groupId>org.apache.maven.plugins </groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+```
 * jdbc.properties
   * 可定义多个，这里只定义一个用于举例说明 
 ```
