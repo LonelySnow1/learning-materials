@@ -414,4 +414,18 @@ spring:
 
 # 整合第三方技术
 ## SpringBoot整合JUnit
+```java
+@SpringBootTest
+class ApplicationTests {
+    @Autowired
+    private BookService bookService;
+
+    @Test
+     public void save(){
+        bookService.save();
+    }
+
+}
+```
  
+Spring整合mybatis
