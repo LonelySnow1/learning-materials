@@ -428,4 +428,86 @@ class ApplicationTests {
 }
 ```
  
-Spring整合mybatis
+## Spring整合mybatis
+
+### Spring 整合mybatis（复习）
+  * SpringConfig
+    * 导入JdbcConfig
+    * 导入MybatisConfig
+  * JdbcConfig
+    * 定义数据源（加载properties配置项：driver，url，username，password）
+  * MyBatisConfig
+    * 定义SqlSessionFactoryBean
+    * 定义映射配置
+### SpringBoot整合MyBatis
+  1. 创建新模块，选择Spring初始化，并配置模块相关基础信息
+  2. 选择当前模块所需要使用的技术集（MyBatis，Mysql）
+  3. 设置数据源参数
+  4. 定义数据层接口与映射配置(记得引入Mapper坐标)
+  5. 测试类中注入dao接口，测试功能
+
+![img_7.png](img_7.png)
+* pom.xml(勾选数据集之后会多出两个坐标) 
+```xml
+<dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+            <version>8.0.33</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+</dependencies>
+```
+* application.yml
+```yaml
+spring:
+  profiles:
+    active: ${profile.active}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ssm_db
+    username: root
+    password: 123456
+```
+* BookDao(让Spring能扫描到，并为其添加自动代理)
+```java
+@Mapper
+public interface BookDao {
+   @Select("select * from tbl_book where id = ${id}")
+   Book getById(Integer id);
+}
+```
+* ApplicationTests
+```java
+@SpringBootTest
+class ApplicationTests {
+
+    @Autowired
+    private BookDao bookDao;
+    
+    @Test
+    public void testById(){
+        Book book =  bookDao.getById(3);
+        System.out.println(book);
+    }
+}
+```
+
+## 基于SpringBoot的SSM整合
+1. pom.xml
+   * **配置起步依赖，必要的资源坐标（druid）**
+   * druid的作用：能够重复利用数据库连接（有些类似线程池），提高对请求的响应时间和服务器的性能。
+2. application.yml
+   * 设置数据源，端口等
+3. 配置类
+   * **全部删除**
+4. dao
+   * **设置Mapper**
+5. 测试类
+6. 页面：
+   * 放在resource目录下的static目录中
