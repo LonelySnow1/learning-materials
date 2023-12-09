@@ -122,3 +122,90 @@ public class User {
     private String tel;
 }
 ```
+
+## MP分页查询功能
+1. 设置分页拦截器作为Spring管理的bean
+2. 执行分页查询
+3. 开启日志（可选）
+
+* config/Mpconfig
+```java
+@Configuration
+public class Mpconfig {
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        //1.定义mp拦截器
+        MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
+        //2.在mp拦截器中添加具体拦截器
+        mybatisPlusInterceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        return mybatisPlusInterceptor;
+    }
+}
+```
+
+* 测试类
+```java
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+
+  @Autowired
+  private UserDao userDao;
+  @Test
+  void testGetByPage(){
+    IPage page = new Page(1,5);
+    userDao.selectPage(page,null);
+    System.out.println("当前页码数："+ page.getCurrent());
+    System.out.println("每页显示数："+ page.getSize());
+    System.out.println("一共多少页："+ page.getPages());
+    System.out.println("一共多少条："+ page.getTotal());
+    System.out.println("数据："+ page.getRecords());
+  }
+}
+```
+
+* application.yml —— 开启日志（可选）
+```yaml
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+```
+---
+# DQL编程控制
+## 条件查询 —— 设置查询格式
+* 格式一： 常规格式
+```java
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+
+  @Autowired
+  private UserDao userDao;
+  @Test
+  void testGetAll() {
+    //方式一：按条件查询 
+//        QueryWrapper qw = new QueryWrapper<>();
+//        qw.lt("age",300);
+//        List<User> Users = userDao.selectList(qw);
+//        System.out.println(Users);
+
+    //方式二：lambda格式按条件查询
+//        QueryWrapper<User> qw = new QueryWrapper<>();
+//        qw.lambda().lt(User::getAge,200);
+//        List<User> Users = userDao.selectList(qw);
+//        System.out.println(Users);
+
+
+    //方式三：lambda格式按条件查询(推荐)
+//        LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
+//        qw.lt(User::getAge,200);
+//        List<User> Users = userDao.selectList(qw);
+//        System.out.println(Users);
+
+    //方式四： lambda格式按条件查询(推荐)
+    LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
+//        qw.lt(User::getAge,600).gt(User::getAge,300); //可以链式编程
+    qw.gt(User::getAge, 600).or().lt(User::getAge, 100); //可以链式编程
+    List<User> Users = userDao.selectList(qw);
+    System.out.println(Users);
+  }
+}
+```
