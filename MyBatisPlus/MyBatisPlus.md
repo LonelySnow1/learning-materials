@@ -171,8 +171,8 @@ mybatis-plus:
 ```
 ---
 # DQL编程控制
-## 条件查询 —— 设置查询格式
-* 格式一： 常规格式
+## 条件查询
+### 四种常见查询方式
 ```java
 @SpringBootTest
 class MyBatisPlusApplicationTests {
@@ -209,3 +209,29 @@ class MyBatisPlusApplicationTests {
   }
 }
 ```
+
+###  空值处理
+* 条件参数控制
+```java
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+
+  @Autowired
+  private UserDao userDao;
+
+  @Test
+  void testGetAll() {
+      UserQuery uq = new UserQuery();
+//        uq.setAge(100);
+//        uq.setAge2(300);
+    //null判定,先判断条件是否为true
+    LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
+    qw.gt(null != uq.getAge(), User::getAge, uq.getAge());
+    qw.lt(null != uq.getAge2(), User::getAge, uq.getAge2());
+    List<User> Users = userDao.selectList(qw);
+    System.out.println(Users);
+  }
+}
+```
+
+## 查询投影
