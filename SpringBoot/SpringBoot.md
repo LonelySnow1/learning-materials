@@ -259,7 +259,7 @@ enterprise:
     - da
 ```
 
-## 多环境运行
+## 多环境开发
 ### 多环境配置
 * yaml/yml格式 —— 不区分环境名称的先后顺序
 ```yaml
@@ -321,3 +321,97 @@ server.port=82
 * Spring配置文件加载顺序，优先级从高到低
 
 ![img_4.png](img_4.png)
+
+### 与Maven共同进行版本控制
+
+1. Maven中设置多环境属性
+2. SpringBoot中引用Maven属性
+
+* pom.xml
+```xml
+<project>
+<!--  无关配置已略去-->
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profile.active>dev</profile.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <properties>
+                <profile.active>pro</profile.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <profile.active>test</profile.active>
+            </properties>
+        </profile>
+    </profiles>
+
+
+    <build>
+        <plugins>
+<!--            允许外部文件读取pom中的属性-->
+            <plugin>
+                <groupId>org.apache.maven.plugins </groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+```
+
+* application.yml
+```yaml
+spring:
+  profiles:
+    active: ${profile.active}
+
+---
+server:
+  port: 80
+spring:
+  config:
+    activate:
+      on-profile: dev
+---
+
+server:
+  port: 81
+spring:
+  config:
+    activate:
+      on-profile: pro
+---
+
+server:
+  port: 82
+spring:
+  config:
+    activate:
+      on-profile: test
+```
+
+## 配置文件分类
+![img_5.png](img_5.png)
+
+* 1，2级的路径是在jar包的目录下（**跟着jar包走**）
+* 3，4级是写项目的时候配置的
+
+![img_6.png](img_6.png)
+
+# 整合第三方技术
+## SpringBoot整合JUnit
+ 
