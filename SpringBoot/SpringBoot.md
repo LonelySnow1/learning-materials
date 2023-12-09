@@ -15,9 +15,9 @@
   4. 运行自动生成的Application类
      * 可以看见Tomcat的端口号和版本信息
   
-![img.png](img.png)
-![img_1.png](img_1.png)
-![img_3.png](img_3.png)
+![img.png](material/img.png)
+![img_1.png](material/img_1.png)
+![img_3.png](material/img_3.png)
 
 ### Spring程序与SpringBoot程序对比
 * pom文件中的坐标
@@ -161,7 +161,7 @@ server:
 ```
 如果yaml/yml文件没有自动补全，代码提示，可以在项目结构中将文件添加到项目的配置文件中
 
-![img_2.png](img_2.png)
+![img_2.png](material/img_2.png)
 
 * Springboot配置文件的加载顺序
   * application.properties
@@ -320,7 +320,7 @@ server.port=82
 
 * Spring配置文件加载顺序，优先级从高到低
 
-![img_4.png](img_4.png)
+![img_4.png](material/img_4.png)
 
 ### 与Maven共同进行版本控制
 
@@ -405,12 +405,12 @@ spring:
 ```
 
 ## 配置文件分类
-![img_5.png](img_5.png)
+![img_5.png](material/img_5.png)
 
 * 1，2级的路径是在jar包的目录下（**跟着jar包走**）
 * 3，4级是写项目的时候配置的
 
-![img_6.png](img_6.png)
+![img_6.png](material/img_6.png)
 
 # 整合第三方技术
 ## SpringBoot整合JUnit
@@ -446,7 +446,7 @@ class ApplicationTests {
   4. 定义数据层接口与映射配置(记得引入Mapper坐标)
   5. 测试类中注入dao接口，测试功能
 
-![img_7.png](img_7.png)
+![img_7.png](material/img_7.png)
 * pom.xml(勾选数据集之后会多出两个坐标) 
 ```xml
 <dependencies>
