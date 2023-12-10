@@ -173,6 +173,10 @@ mybatis-plus:
 # DQL编程控制
 ## 条件查询
 ### 四种常见查询方式
+
+* lambda的格式，也就是方法引用，有点类似匿名函数
+  * User::getId 也就是 (User) -> user.getId()
+  * 作用等同于 new User().getId()
 ```java
 @SpringBootTest
 class MyBatisPlusApplicationTests {
@@ -235,3 +239,5 @@ class MyBatisPlusApplicationTests {
 ```
 
 ## 查询投影
+
+
