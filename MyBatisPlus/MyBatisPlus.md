@@ -239,5 +239,176 @@ class MyBatisPlusApplicationTests {
 ```
 
 ## 查询投影
+* 查询包含模型类中部分属性
+* 查询结果包含模型类中未定义的属性
 
+```java
+// 包含模型类中部分属性，不是所有的聚合函数都支持
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+    
+  @Autowired
+  private UserDao userDao;
 
+  @Test
+  void testGetAll() {
+    QueryWrapper<User>  qw = new QueryWrapper<>();
+    qw.select("count(*) count");
+    List<Map<String, Object>> Users = userDao.selectMaps(qw);
+    System.out.println(Users);
+  }
+}
+```
+
+```java
+// 包含模型类中中未定义的属性
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+    
+  @Autowired
+  private UserDao userDao;
+
+  @Test
+  void testGetAll() {
+    QueryWrapper<User>  qw = new QueryWrapper<>();
+    qw.select("count(*) count,age");
+    qw.groupBy("age");
+    List<Map<String, Object>> Users = userDao.selectMaps(qw);
+    System.out.println(Users);
+  }
+}
+```
+
+## 查询条件
+* eq(字段,"值") 等值匹配
+* le ge  between 闭区间匹配[]
+* like 模糊匹配
+* ... 更多可去官方文档查询
+
+## 字段映射与表名映射
+问题一： 表字段与编码属性设计不同步
+
+问题二： 编码中添加了数据库中未定义的属性
+
+问题三： 采用默认查询开放了更多的字段查看权限
+* @TableField
+  * 类型： 属性注解
+  * 位置： 模型类属性定义上方
+  * 作用： 设置当前属性对应的数据库表中的字段关系
+  * 属性： 
+    * value —— 设置数据库的字段名称
+    * exist —— 设置属性在数据库表中字段是否存在，默认为true。此属性无法与value合并使用
+    * select —— 设置属性是否参与查询，此属性与select映射不冲突
+* @TableName
+  * 类型： 类注释
+  * 位置： 模型类定义上方
+  * 作用： 设置当前类对应于数据库标关系
+  * 属性：
+    * value —— 表名称
+```java
+@TableName("user")
+public class User {
+  private Long id;
+  private String name;
+  @TableField(value = "password",select = false)
+  private String pwd;
+  private Integer age;
+  private String tel;
+  @TableField(exist = false)
+  private Integer online;
+}
+```
+
+---
+
+# DML编程控制
+## 基础增删语句
+```java
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+
+  @Autowired
+  private UserDao userDao;
+
+  @Test
+  void add() {
+    User user = new User();
+    user.setName("LonelySnow");
+    user.setPwd("LonelySnow");
+    user.setAge(123);
+    user.setTel("LonelySnow");
+    userDao.insert(user);
+  }
+
+  @Test
+  void delete() {
+    LambdaQueryWrapper<User> qw = new LambdaQueryWrapper<>();
+    qw.eq(User::getName, "lonelysnow");
+    userDao.delete(qw);
+  }
+}
+
+```
+
+## id生成策略控制
+* AUTO(0) —— 使用数据库自增ID策略生成
+* NONE(1) —— 不设置ID生成策略
+* INPUT(2) —— 用户手动输入ID
+* ASSIGN_ID(3) —— 雪花算法生成ID（可兼容数值型与字符串型）
+* ASSIGN_UUID(4) —— 以UUID生成算法作为ID生成策略
+
+雪花算法 —— 生成一个64位的二进制数（必须用long型装）
+* 占位符（第一位）：0
+* 时间戳（41位）
+* 机器码（5+5位）
+* 序列号（12位）
+
+配置文件统一添加
+```yaml
+mybatis-plus:
+  global-config:
+    db-config:
+      #id策略
+      id-type: assign_id
+      #所有实体类名前拼接前缀，相当于@TableName
+      table-prefix: tbl_
+```
+
+## 逻辑删除
+* 删除操作业务问题： 业务数据从数据库中丢失
+* 逻辑删除： 为数据设置是否可用字段，删除时设置字段为不可用状态，数据保留在数据库中
+
+逻辑删除步骤
+1. 数据库表中添加逻辑删除标记字段
+2. 实体类中添加对应的字段，并设置当前字段为逻辑删除字段
+3. 配置逻辑删除字面值
+
+```java
+//单独设置
+@TableName("user")
+public class User {
+//    @TableId(type = IdType.AUTO)
+    private Long id;
+    private String name;
+    @TableField(value = "password",select = false)
+    private String pwd;
+    private Integer age;
+    private String tel;
+    @TableLogic(value = "0",delval = "1")
+    private Integer deleted;
+}
+```
+
+```yaml
+//配置通用配置
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-not-delete-value: 0
+      logic-delete-value: 1
+```
+
+## 乐观锁
+* 业务并发现象带来的问题： 秒杀
+* 
