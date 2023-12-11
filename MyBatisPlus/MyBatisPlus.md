@@ -411,4 +411,42 @@ mybatis-plus:
 
 ## 乐观锁
 * 业务并发现象带来的问题： 秒杀
-* 
+
+乐观锁添加步骤
+1. 数据库表中添加锁标记字段
+2. 实体类中添加对应字段，并设定当前字段为逻辑删除标记字段 
+3. 配置乐观锁拦截器实现锁机制对应的动态SQL语句拼装
+4. 
+```java
+@Configuration
+public class Mpconfig {
+
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        //1.定义mp拦截器
+        MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
+        //2.在mp拦截器中添加具体拦截器
+        mybatisPlusInterceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        //添加乐观锁拦截器
+        mybatisPlusInterceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+        return mybatisPlusInterceptor;
+    }
+}
+```
+```java
+@SpringBootTest
+class MyBatisPlusApplicationTests {
+
+    @Autowired
+    private UserDao userDao;
+
+    @Test
+    void update(){
+        //1. 修改前先查询要修改的数据
+        User user = userDao.selectById(2L);
+        //2.将想要修改的属性值传进去
+        user.setName("snow");
+        userDao.updateById(user);  
+    }
+}
+```
