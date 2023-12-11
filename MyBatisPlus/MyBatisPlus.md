@@ -90,12 +90,12 @@ class MyBatisPlusApplicationTests {
 * MyBatisPlus(简称MP)是基于MyBatis框架基础上开发的增强型工具，旨在简化开发，提高效率
 * 国内组织开发的技术
 
-![img.png](img.png) 
+![img.png](material/img.png) 
 
 ---
 # 标准数据层开发
 ## mp提供的接口
-![img_1.png](img_1.png)
+![img_1.png](material/img_1.png)
 ## Lombok
 * lombok,一个Java类库，提供了一组注解，简化POJO实体类的开发
 * 常用@Data:注解在类上，提供get、set、equals、hashCode、canEqual、toString、无参构造方法，**没有有参构造**
