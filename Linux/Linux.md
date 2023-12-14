@@ -228,3 +228,30 @@ linux权限管理有两个级别，用户/用户组
 * group结果： 组名称：组认证（X）：组ID
 
 ## 查看权限控制
+通过ls -l 可以通过列表查看详细信息，并显示权限细节，可将信息大体分为三部分
+
+![img_5.png](img_5.png)
+* 序号1 ，表示所属用户权限
+  * ![img_6.png](img_6.png)
+  * -表示无权限
+  * r——读(eg:ls,cat等)，w——写(eg:touch,mkdir,rm等)，x——执行(cd进入)
+* 序号2 ，表示所属用户组权限
+* 序号3 ，表示其他用户权限
+
+## chmod 修改权限
+* 可以使用chmod命令修改文件/文件夹的权限——只有文件、文件夹的所属用户才能修改
+  * 语法： ```chmod [-R] 权限 文件或文件夹```
+  * -R，对文件内的全部内容应用同样的操作
+  * eg： ```chmod u=rwx,g=rx,o=x hello.txt``` 即可将文件修改为: rwxr-x--x
+    * u表示user，g表示group，o表示other
+* 权限快捷表示
+  * r=4,w=2,x=1
+  * 751 -> rwxr-x--x
+## chown 修改文件/文件夹归属
+* 可以使用chown修改文件/文件夹所属的用户/用户组
+* 普通用户无法操作，只有root用户可以操作
+  * 语法： ```chowm [-R] [用户] [：] [用户组] 文件或文件夹```
+  * ':' ：用于分割用户和用户组
+  * eg： ```chown root:root hello.txt``` 归属修改为root用户，root用户组
+  * eg： ```chown :root hello.txt``` 归属修改为root用户组
+  * eg： ```chown root hello.txt``` 归属修改为root
