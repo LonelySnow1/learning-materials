@@ -159,7 +159,7 @@ ls命令的作用是列出目录下的内容，语法细节如下
 ## vi/vim编辑器介绍
 是linux中最经典的编辑器，vim是vi的加强版
 
-![img_2.png](img_2.png)
+![img_2.png](material/img_2.png)
 
 三种工作模式
 * 命令模式：默认模式 
@@ -172,13 +172,13 @@ ls命令的作用是列出目录下的内容，语法细节如下
   * 以：开始，通常用于文件的保存，退出
 * 常用命令：
 
-![img.png](img.png)
+![img.png](material/img.png)
 
-![img_1.png](img_1.png)
+![img_1.png](material/img_1.png)
 
-![img_3.png](img_3.png)
+![img_3.png](material/img_3.png)
 
-![img_4.png](img_4.png)
+![img_4.png](material/img_4.png)
 
 ---
 # linux用户和权限
@@ -230,9 +230,9 @@ linux权限管理有两个级别，用户/用户组
 ## 查看权限控制
 通过ls -l 可以通过列表查看详细信息，并显示权限细节，可将信息大体分为三部分
 
-![img_5.png](img_5.png)
+![img_5.png](material/img_5.png)
 * 序号1 ，表示所属用户权限
-  * ![img_6.png](img_6.png)
+  * ![img_6.png](material/img_6.png)
   * -表示无权限 
   * r——读(eg:ls,cat等)，w——写(eg:touch,mkdir,rm等)，x——执行(cd进入)
 * 序号2 ，表示所属用户组权限
@@ -431,13 +431,13 @@ linux可以支持65535个端口，这六万个端口分为三类使用
   * TIME+：进程使用CPU时间总计，单位10毫秒
   * COMMAND：进程的命令或名称或程序文件路径
 
-![img_8.png](img_8.png)
+![img_8.png](material/img_8.png)
 * top命令选项
 
-![img_7.png](img_7.png)
+![img_7.png](material/img_7.png)
 * top交互式选项
 
-![img_9.png](img_9.png)
+![img_9.png](material/img_9.png)
 
 ### 查看磁盘监控
 * df 使用df命令可以查看磁盘使用情况
@@ -469,7 +469,7 @@ linux可以支持65535个端口，这六万个端口分为三类使用
   * -n : 查看网络，DEV表示查看网络端口
   * num1： 刷新间隔（不填就一次结束） num2 ： 不填不限次数
 
-![img_10.png](img_10.png)
+![img_10.png](material/img_10.png)
 * 信息解读：
   * IFACE 本地网卡接口的名称
   * rxpck/s 每秒钟接受的数据包
@@ -486,7 +486,7 @@ linux可以支持65535个端口，这六万个端口分为三类使用
 ### 环境变量： path
 无论在哪里，都能执行cd这个程序，就是借助path这个项目的值来做到的，当执行任何命令时，都会按照顺序从上述路径中搜索执行程序的本体
 
-![img_11.png](img_11.png)
+![img_11.png](material/img_11.png)
 
 ### $符号：
 $用于取到环境变量记录的值
@@ -500,3 +500,40 @@ $用于取到环境变量记录的值
   * 针对当前用户生效，配置在当前用户的：	~/.bashrc文件中
   * 针对所有用户生效，配置在系统的：	/etc/profile文件中
   * 并通过语法：source 配置文件，进行立刻生效，或重新登录FinalShell生效
+* 追加自定义path
+  * ```PATH=$PATH:追加路径```
+  * 这样就保证了不会覆盖掉原本的path路径
+
+## 安装和下载
+### rz，sz命令
+除了使用FinalShell的下方窗体进行文件传输外，也可以通过rz，sz命令进行文件传输。
+rz，sz命令需要安装
+* 安装： ```yum -y install lrzsz```
+* 但是不推荐用这个命令，速度较慢，建议使用finalshell窗体拖拽实现
+* rz上传 sz下载
+
+## 压缩，解压
+### tar命令
+* .tar，称之为tarball，归档文件，将文件简单的组装到一个.tar文件内，并没有太多的压缩，仅仅是简单的封装
+* .gz 常见为.tar.gz gzip格式压缩文件，即使用gzip压缩算法将文件压缩到一个文件内，可以极大的减小压缩后的体积
+* 语法： ```tar [-c -v -x -f -z -C] 参数1 参数2 ... 参数N```
+  * -c ： 创建压缩文件，用于压缩模式
+  * -v ： 显示压缩，解压过程，用于查看进度
+  * -x ： 解压模式
+  * -f ： 要创建的文件，或者要解压的文件，必须处于所有选项中的最后一个
+  * -z ： gzip模式，不使用-z就是普通的tarball格式
+  * -C ： 选择解压的目的地，用于解压模式
+* eg：  ```tar -cvf test.tar 1.txt 2.txt 3.txt``` —— 将123压缩到test.tar 文件中
+* eg：  ```tar -zcvf test.tar.gz 1.txt 2.txt 3.txt``` —— 将123压缩到test.tar.gz 文件中，使用gzip模式
+* eg：  ```tar -xvf test.rar``` 解压test.rar到当前目录
+* eg：  ```tar -zxvf test.tar.gz -c /home``` 将.gz文件解压到指定目录
+
+### zip命令
+* 压缩语法: ```zip [-r] 参数1 参数2 ... 参数N``` 
+  * -r：被压缩的包含文件夹的时候，需要使用-r选项，和rm，cp的-r效果一致
+  * eg： ```zip -r test.zip a b.txt c.txt``` 将文件夹a，文件bc压缩到test.zip中
+* 解压语法： ```unzip [-d] 参数```
+  * -d ： 指定要解压去的位置，同-c
+  * 参数，被解压的zip文件
+  * eg： ```unzip test.zip -d /home``` 将test解压到指定目录
+* 解压同名文件会覆盖，注意保存
