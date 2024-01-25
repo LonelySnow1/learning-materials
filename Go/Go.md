@@ -81,15 +81,24 @@ go mod vendor
 arr2 := arr1 //深拷贝
 arr2 := &arr1 //浅拷贝
 //切片 —— 默认浅拷贝，使用下面方法进行深拷贝
-target:=make([]int,len(source))
+//多维数组需要遍历拷贝
+target := make([]int,len(source))
 copy(target,source)
 ```
 
 ### 2. 取整
 
+
 ```go
-math.Ceil() //向上取整
-math.Floor()//向下取整
-math.Round()//四舍五入
+math.Ceil(float64) //向上取整
+math.Floor(float64) //向下取整
+math.Round(float64) //四舍五入
 ```
 
+### 3.  搜索某个数在数组内的什么位置
+```go
+sort.SearchInts(arr []int,target int)
+//返回第一个target的位置
+//若不存在target，则返回target应插入的位置
+//arr切片必须是升序排列
+```
