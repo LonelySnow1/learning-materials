@@ -4,10 +4,10 @@
 Remote Dictionary Server（远程字典服务器）
 使用ANSIC语言编写遵守BSD协议，**是一个高性能的Key-Value数据库**，提供了丰富的数据结构，例如String、Hash、List、Set、SortedSet等等。数据是存在内存中的，同时Redis支持事务、持久化、LUA脚本、发布/订阅、缓存淘汰、流技术等多种功能，提供了主从模式、Redis Sentinel和Redis Cluster集群架构方案
 
-![img.png](img.png)
+![img.png](img/img.png)
 ## 主流功能与应用：
 1. 分布式缓存，挡在MySQL数据库之前的带刀护卫 
-![img_1.png](img_1.png)
+![img_1.png](img/img_1.png)
    * 对比传统数据库（MySQL）
      * Redis是key-value数据库的一种，MySQL是关系型数据库
      * Redis数据操作主要在内存，MySQL主要存储在磁盘
@@ -26,7 +26,7 @@ Remote Dictionary Server（远程字典服务器）
 7. 排行榜+点赞
 
 ## 总体功能概述：
-![img_2.png](img_2.png)
+![img_2.png](img/img_2.png)
 ### 优势：
 * 性能极高-Redis读的速度是110000次/秒，写的速度是81000次/秒
 * Redis数据类型丰富，不仅仅支持简单的Key-Value类型的数据，同时还提供list，set，zset，hash等数据结构的存储
@@ -56,7 +56,7 @@ Remote Dictionary Server（远程字典服务器）
    * **redis-server: Redis服务启动命令**
 8. 备份redis.conf ```mkdir /myredis``` ```cp redis.conf /myredis/redis7.conf```
 9. 修改原redis.conf ```vim /opt/redis-7.2.4/redis.conf ```
-   * ![img_3.png](img_3.png)
+   * ![img_3.png](img/img_3.png)
 10. 启动服务 ```redis-server /opt/redis-7.2.4/redis.conf ```
 11. 连接服务 ```redis-cli -a 123 -p 6379```
 
@@ -66,7 +66,7 @@ Remote Dictionary Server（远程字典服务器）
 多实例关闭，指定端口关闭：redis-cli -p 6379 shutdown
 
 ## Redis十大数据类型
-![img_4.png](img_4.png)
+![img_4.png](img/img_4.png)
 
 * 提前声明： 这里说的数据类型是value的数据类型，key的类型都是字符串
 
@@ -98,7 +98,7 @@ Remote Dictionary Server（远程字典服务器）
 * 在Redis里面，每个HyperLogLog键只需要花费12KB内存，就可以计算接近2^64个不同元素的基数。这和计算基数时，元素越多耗费内存就越多的集合形成鲜明对比。
 * 但是，因为HyperLogLog只会根据输入元素来计算基数，而不会存储输入元素本身，所以HyperLogLog不能像集合那样，返回输入的各个元素。
 ### redis位图（bitmap）
-* ![img_5.png](img_5.png)
+* ![img_5.png](img/img_5.png)
 * 由0和1状态表现的二进制位的bit数组
 ### redis位域（bitfield）
 * 通过bitfield命令可以一次性操作多个比特位域(指的是连续的多个比特位），它会执行一系列操作并返回一个响应数组，这个数组中的元素对应参数列表中的相应的执行结果。
@@ -109,7 +109,7 @@ Remote Dictionary Server（远程字典服务器）
 * 简单来说发布订阅（pub/sub）可以分发消息，但无法记录历史消息。
 * 而Redis Stream提供了消息的持久化和主备复制功能，可以让任何客户端访问任何时刻的数据，并且能记住每一个客户端的访问位置，还能保证消息不丢失。
 ## Redis 键（key）
-![img_6.png](img_6.png)
+![img_6.png](img/img_6.png)
 
 ## 数据类型命令及落地使用
 命令不区分大小写，key区分大小写
