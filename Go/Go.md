@@ -105,8 +105,7 @@ sort.SearchInts(arr []int,target int)
 //arr切片必须是升序排列
 ```
 
-### 4. 构建常见的数据结构
-#### 栈
+## 栈
 ```go
 stack := make([]int,0) //初始化 —— 对应类型
 stack = append(stack,k) // 添加元素——push
@@ -122,4 +121,20 @@ delete(scene,b) // 删除数据
 for k, v := range scene { // 遍历数据
     fmt.Println(k, v)
 }
+```
+
+
+## 链表
+### 1. 定义
+```go
+type ListNode struct {
+	 Val int
+     Next *ListNode
+  }
+```
+### 2. 删除链表中的特定元素
+```go
+//删除current的下一个
+//让current的下一个等于下一个的下一个
+current.Next = current.Next.Next 
 ```
