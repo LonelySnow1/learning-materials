@@ -57,7 +57,7 @@ Remote Dictionary Server（远程字典服务器）
 8. 备份redis.conf ```mkdir /myredis``` ```cp redis.conf /myredis/redis7.conf```
 9. 修改原redis.conf ```vim /opt/redis-7.2.4/redis.conf ```
    * ![img_3.png](img/img_3.png)
-10. 启动服务 ```redis-server /opt/redis-7.2.4/redis.conf ```
+10. 启动服务 ```redis-server /opt/redis-7.2.4/redis.conf```
 11. 连接服务 ```redis-cli -a 123 -p 6379```
 
 关闭服务器： 

@@ -132,6 +132,11 @@ type ListNode struct {
      Next *ListNode
   }
 ```
+### 2. 初始化
+```go
+MyList := &ListNode{}
+```
+
 ### 2. 删除链表中的特定元素
 ```go
 //删除current的下一个
