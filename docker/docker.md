@@ -78,4 +78,46 @@ docker会在运行镜像时创建一个隔离环境，称为容器（container�
 * 在执行docker run命令的时候，使用 -v 数据卷：容器内目录 可以完成数据卷挂载
 * 当创建容器时，如果挂在了数据卷且数据卷不存在，会自动创建数据卷 
 
+### 镜像结构
+**层(Layer)**：
+
+添加安装包，依赖，配置等，每次操作都形成新的一层
+
+**基础镜像（BaseImage）**：
+
+应用依赖的系统函数库，环境，配置，文件等
+
+**入口（Entrypoint）**：
+
+镜像运行入口，一般是程序启动的脚本和参数
+
+### Dockerfile
+**DockerFile**是一个文本文件，其中包含一个个**指令（Instruction）**，用指令来说明要执行什么操作来构建镜像。
+将来Docker可以根据Dockerfile帮我们构建镜像。常用指令如下：
+
+![img_1.png](img_1.png)
+
+eg：
+![img_2.png](img_2.png)
+
+如果编写好了DockerFile，可以使用下面的命令来构建镜像
+
+```shell
+docker build -t myImage:1.0 .
+```
+
+-t : 给镜像起名，是repository：tag的格式，不指定tag时，默认为latest
  
+. : 是指定Dockerfile所在目录，如果就在当前目录，则指定为"."
+
+## 网络
+默认情况下，所有容器都是以bridge方式连接到docker的一个虚拟网桥上：
+
+加入自定义网络的容器才可以通过容器名相互访问，Docker的网络操作如下：
+
+**在同一自定义网桥下的两个容器可以相互通信**
+ ![img_3.png](img_3.png)
+
+# 部署项目
+DockerCompose
+通过一个单独的docker-compose.yml模板文件（YAML格式）来定义一组相关联的应用容器，帮助我们实现**多个相互关联的Docker容器的快速部署**
