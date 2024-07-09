@@ -1,5 +1,6 @@
 # docker 
-## 一、docker安装
+## 一、docker入门
+### 安装
 1. 卸载旧版
 首先如果系统中已经存在旧的Docker，则先卸载：
 ```
@@ -48,6 +49,16 @@ systemctl enable docker
 # 执行docker ps命令，如果不报错，说明安装启动成功
 docker ps
 ```
+### 镜像和容器
+当我们利用docker安装应用时，Docker会自动搜索并下载应用镜像（image）。
+镜像不仅包括应用本身，还包含应用运行所需要的环境、配置、系统函数库。
+
+docker会在运行镜像时创建一个隔离环境，称为容器（container）。
+
+**镜像仓库**： 存储和管理镜像的平台，Docker hub
+
+### 常用命令
+![img.png](img.png)
 ## 二、docker 数据卷
 案例一：利用Nginx部署静态资源
 
@@ -66,3 +77,5 @@ docker ps
 
 * 在执行docker run命令的时候，使用 -v 数据卷：容器内目录 可以完成数据卷挂载
 * 当创建容器时，如果挂在了数据卷且数据卷不存在，会自动创建数据卷 
+
+ 
