@@ -1,3 +1,69 @@
+# go基础知识点总结
+1. go语言中不存在未初始化的变量。如果初始化被省略，则会使用该类型零值初始化该变量
+2. 简短变量声明（:=）使用时，左侧必须有一个未定义的变量。此时，未定义的变量作初始化，已定义的变量作赋值
+3. 变量逃逸是指在超出了作用域的变量不能被立刻回收，仍可找到，如下例
+```go
+var global *int
+
+func f() {
+    var x int
+    x = 1
+    global = &x
+}
+
+func g() {
+    y := new(int)
+    *y = 1
+}
+// 此时，在f的作用域外，仍可通过global访问到x中的值，我们就称x发生了变量逃逸
+// 而y就没有出现变量逃逸现象，作用域外不可达，可直接被回收
+```
+4. go允许元组赋值，在进行该操作时，会先对右侧进行计算，再统一赋值给左侧。
+```go
+a ,b = b,a
+```
+5. 使用type 类型名字 底层类型 可以给类型重命名。重命名的类型相当于另一个类型，不能与不同类型比较大小。
+```go
+// Package tempconv performs Celsius and Fahrenheit temperature computations.
+package tempconv
+
+import "fmt"
+
+type Celsius float64    // 摄氏温度
+type Fahrenheit float64 // 华氏温度
+// Celsius和Fahrenheit分别对应不同的温度单位。它们虽然有着相同的底层类型float64，但是它们是不同的数据类型
+
+const (
+    AbsoluteZeroC Celsius = -273.15 // 绝对零度
+    FreezingC     Celsius = 0       // 结冰点温度
+    BoilingC      Celsius = 100     // 沸水温度
+)
+
+func CToF(c Celsius) Fahrenheit { return Fahrenheit(c*9/5 + 32) }
+
+func FToC(f Fahrenheit) Celsius { return Celsius((f - 32) * 5 / 9) }
+
+func main(){
+	var c Celsius
+	var f Fahrenheit
+	fmt.Println(c == 0)          // "true"
+	fmt.Println(f >= 0)          // "true"
+	fmt.Println(c == f)          // compile error: type mismatch 类型不同，不能直接比较
+	fmt.Println(c == Celsius(f)) // "true"!
+}
+```
+
+6. 
+
+
+
+
+
+
+
+
+
+
 # go mod 依赖管理
 1. go.mod 文件内容
 2. go mod 命令行管理
