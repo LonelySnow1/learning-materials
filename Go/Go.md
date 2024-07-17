@@ -127,8 +127,16 @@ const (
 
 fmt.Println(YiB/ZiB) // "1024"
 ```
+## 三、复合数据类型
+1. 无法对map中的元素进行取址操作
+```go
+_ = &ages["bob"] // compile error: cannot take address of map element
+```
+2. interface()类型的切片可以包含自身
 
+3. 如果结构体成员名字是以大写字母开头的，那么该成员就是导出的；这是Go语言导出规则决定的。一个结构体可能同时包含导出和未导出的成员。
 
+4. 结构体嵌入不止获得了匿名成员嵌套的成员，还获得了该类型导出的全部方法
 ---
 
 # go mod 依赖管理
