@@ -141,8 +141,43 @@ _ = &ages["bob"] // compile error: cannot take address of map element
 ## 四、函数
 1. 函数签名： 函数的类型被成为函数的签名，如果两个函数的参数列表和返回值一一对应，那么则称他们的函数签名相同。（变量名不影响函数签名）
 2. 没有函数体的函数名声往往代表该函数不是由Go语言实现的
-3. 
-
+3. 如果一个函数所有的返回值都有显式的变量名，那么该函数的return语句可以省略操作数。这称之为bare return。
+```go
+func abc(i int) (a, b, c int) {
+    if i == 1 {
+        return  
+    }
+    a = 0
+    b = 1
+    c = 2
+    return
+}
+func main() {
+    fmt.Println(abc(1)) //0 0 0
+    fmt.Println(abc(2)) //0 1 2
+}
+// 此时每个return都会按照返回值次序返回
+// 等价于 return a,b,c
+```
+4. Go异常处理有别于其他语言的地方：
+* 没有传统意义上的异常：
+Go语言没有像Java或C++那样的异常处理机制，即没有try、catch和finally这样的关键字。
+* Go使用控制流机制（如if和return）处理错误，这使得编码人员能更多的关注错误处理。
+5. 函数可以进行赋值操作,但是不同签名的函数不能进行赋值
+6. 函数零值是nil并且可以和nil比较，但函数值之间不可以比较
+```go
+func abc(i int) int {
+    return i * i
+}
+func a() {}
+func main() {
+    f := abc
+    fmt.Println(f(1))
+    fmt.Println(f(2))
+    fmt.Printf("%T\n", f)
+    f = a //Cannot use 'a' (type func()) as the type func(i int) int
+}
+```
 
 
 
