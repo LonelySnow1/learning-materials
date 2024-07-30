@@ -248,11 +248,38 @@ func main() {
    2. 执该goroutine中的defer函数
    3. 程序崩溃，输出日志信息 
 
-# 七、Gorountines和Channels
-**CSP:**
+##  七、Gorountines和Channels
+### CSP:
 是一种现代的并发编程模型
 强调通过通信而不是共享内存来协调并发实体。
 在Go语言中，这一理念通过goroutines和channels得以实现
+
+**1. 并不需要关闭每一个channel，当没有引用的时候会自动被Go语言的垃圾回收器回收，泄漏的goroutines并不会被自动回收**
+
+**1.5 关闭重复的channel会造成panic异常；关闭nil值的channel也会导致panic异常。关闭channel还会触发广播机制**
+
+**2. 双向channel可以隐式转换单向channel，但是并没有反向转换的语法**
+
+**3. 关闭操作只用于断言不再向channel发送新的数据，所以只能在发送者关闭，在接收端close是一个编译错误，在编译器检测**
+
+**4. channel的缓存队列解耦了接收和发送的goroutine。**
+
+**5. 一个进程中至有一个线程，一个goroutine中至少有一个函数**
+
+**6. Goroutine状态流转:**
+![img.png](img.png)
+![img_1.png](img_1.png)
+
+**7. Goroutines是一个结构体，真正让goroutine运行起来的是调度器，Go自己实现的一个用户态的调度器（GMP）**
+
+**GMP：**
+>M (thread) 和 G (goroutine)，又引进了 P (Processor)。
+> 也就也说 M是线程 G是协程，P是处理器
+
+
+1. 调度器作用是把可运行的G分配到M上
+2. M想要运行G，必须先获取P，P中包含了可运行的G队列
+3. 
 
 
 
