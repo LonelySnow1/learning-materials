@@ -355,10 +355,6 @@ go mod tidy
 go mod vendor
 ```
 
-
-
-
-
 # 算法
 
 ## 数组
@@ -430,3 +426,151 @@ MyList := &ListNode{}
 //让current的下一个等于下一个的下一个
 current.Next = current.Next.Next 
 ```
+
+
+# 进阶
+## 一、常见数据结构的实现原理：
+### 1.Channel 管道
+#### 1.1 初始化
+可用var声明nil管道；用make初始化管道；
+
+len()： 缓冲区中元素个数， cap()： 缓冲区大小
+```go
+//变量声明 
+var a chan int
+//使用make初始化
+b := make(chan int)  //不带缓冲区
+c := make(chan string,2) // 带缓冲区
+```
+```go
+ch1 := make(chan int) // 0 0
+ch2 := make(chan int, 2)// 1 2
+ch2 <- 1
+fmt.Println(len(ch1), len(ch2), cap(ch1), cap(ch2))
+```
+#### 1.2 读写操作
+用 " <- "来表示数据流向，缓冲区满时写/缓冲区空时读 都会阻塞，直到被其他携程唤醒
+```go
+a := make(chan int, 3)
+a <- 1 //数据写入管道
+<-a    //管道读出数据
+```
+管道默认双向可读写，但也可在创建函数时显示单向读写
+```go
+func write(ch chan<- int,a int)  {
+	ch <- a
+	// <- ch  无效运算: <- ch (从仅发送类型 chan<- int 接收)
+}
+
+func read(ch <-chan int)  {
+	<- ch
+	//ch <- 1  无效运算: ch <- 1 (发送到仅接收类型 <-chan int)
+}
+```
+读写值为nil的管道，会永久阻塞，触发死锁
+```go
+	var ch chan int
+	ch <- 1  // fatal error: all goroutines are asleep - deadlock!
+	<-ch  	 // fatal error: all goroutines are asleep - deadlock!
+```
+
+读写已关闭管道：有缓冲区成功可读缓冲区内容，无缓冲区读零值并返回false；写已关闭管道会触发panic
+
+关闭后，等待队列中的携程全部唤醒，按照上述规则直接返回
+```go
+ch1 := make(chan int)
+ch2 := make(chan int, 2)
+go func() {
+	ch1 <- 1
+}()
+ch2 <- 2
+close(ch1)
+close(ch2)
+v1, b1 := <-ch1  //0 false
+v2, b2 := <-ch2  //2 true
+println(v1, v2, b1, b2)
+ch1 <- 1  //panic: send on closed channel
+ch2 <- 1  //panic: send on closed channel
+```
+##### 1.3 实现原理
+简单来说，channel底层是通过环形队列来实现其缓冲区的功能。再加上两个等待队列来存除被堵塞的携程。最后加上互斥锁，保证其并发安全
+```go
+type hchan struct {
+qcount   uint           // 队列中数据的总数
+dataqsiz uint           // 环形队列的大小
+buf      unsafe.Pointer // 指向底层的环形队列
+elemsize uint16         // 元素的大小（以字节为单位）
+closed   uint32         // 表示通道是否已关闭
+elemtype *_type         // 元素的类型（指向类型信息的指针）
+sendx    uint           // 写入元素的位置
+recvx    uint           // 读取元素的位置
+recvq    waitq          // 等待接收的队列（包含等待接收的 goroutine）
+sendq    waitq          // 等待发送的队列（包含等待发送的 goroutine）
+
+// lock 保护 hchan 中的所有字段，以及阻塞在这个通道上的 sudogs 中的几个字段。
+// 在持有此锁时，不要更改另一个 G 的状态（特别是不要使 G 变为可运行状态），
+// 因为这可能会与栈收缩操作发生死锁。
+lock mutex //互斥锁
+}
+```
+环形队列是依靠数组实现的（buf指向该数组），实现方法类似双指针：一个指向写入位置（sendx），一个指向读取位置（recvx）
+![img.png](material/img.png)
+等待队列遵循先进先出，阻塞中的携程会被相反的操作依次唤醒
+
+如果写入时，等待接收队列非空(recvq),那么直接将数据给到等待的携程，不用经过缓冲区
+
+select可以监控单/多个管道内是否有数据，有就将其读出；没有也不会阻塞，直接返回；
+
+select执行顺序是随机的
+```go
+func main() {
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	go write(ch1)
+	go write(ch2)
+	for {
+		select {
+		case e := <-ch1:
+			fmt.Printf("ch1:%d\n", e)
+		case e := <-ch2:
+			fmt.Printf("ch2:%d\n", e)
+		default:
+			fmt.Println("none")
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+func write(ch chan<- int) {
+	for {
+		ch <- 1
+		time.Sleep(time.Second)
+	}
+}
+```
+for-range 读取管道时，管道关闭之后不会继续读取管道内数据；
+
+for 循环读取管道时，管道关闭后，仍会继续读取管道内的数据，返回一堆 零值,false
+```go
+func main() {
+   ch1 := make(chan int)
+   go write(ch1)
+   //for e := range ch1 { // 关闭后不会再从管道读取数据
+   //	fmt.Print(e)
+   //}
+   //1111
+   
+   for { // 关闭后仍在从管道读取数据。返回 零值,false
+   fmt.Print(<-ch1)
+   }
+   //11110000000000000000000000000000000000000.....
+}
+func write(ch chan<- int) {
+   for i := 1; i < 5; i++ {
+   ch <- 1
+   time.Sleep(time.Second)
+   }
+   close(ch)
+}
+```
+
+
