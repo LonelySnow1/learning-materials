@@ -504,7 +504,7 @@ a := make(chan int, 3)
 a <- 1 //数据写入管道
 <-a    //管道读出数据
 ```
-管道默认双向可读写，但也可在创建函数时显示单向读写
+管道默认双向可读写，但也可在创建函数时限制单向读写
 ```go
 func write(ch chan<- int,a int)  {
 	ch <- a
@@ -542,7 +542,7 @@ ch1 <- 1  //panic: send on closed channel
 ch2 <- 1  //panic: send on closed channel
 ```
 #### 1.3 实现原理
-简单来说，channel底层是通过环形队列来实现其缓冲区的功能。再加上两个等待队列来存除被堵塞的携程。最后加上互斥锁，保证其并发安全
+简单来说，channel底层是通过环形队列来实现其缓冲区的功能。再加上两个等待队列来存储被堵塞的携程。最后加上互斥锁，保证其并发安全
 ```go
 type hchan struct {
 qcount   uint           // 队列中数据的总数
@@ -642,16 +642,21 @@ func main() { // len cap 值已标注在后面
 还可以从数组，切片截取来进行初始化。
 -  切片长度根据截取长度定。
 -  若从切片截取，容量保持跟原切片一致；从数组截取，容量为数组长度 - 起始截取位置；
-- 切片截取长度可以超过原切片长度，但不能超过原切片容量
+- 切片截取时，只考虑容量，不考虑长度；即不超过原数组/切片容量就可以截取
 ```go
 func main() {
-	a := [10]int{1, 2, 3, 4, 5, 6, 7} //10 10
-	s1 := a[1:5]                      //4 9
-	s2 := s1[0:9]                     //9 9  
-	s3 := s1[0:10] //panic: runtime error: slice bounds out of range [:10] with capacity 9
-	fmt.Println(len(a), cap(a))
-	fmt.Println(len(s1), cap(s1))
-	fmt.Println(len(s2), cap(s2))
+   a := [10]int{1, 2, 3, 4, 5}
+   s1 := a[1:6]
+   s2 := s1[0:9]
+   s3 := s1[0:10] //panic: runtime error: slice bounds out of range [:10] with capacity 9
+   fmt.Println(len(a), cap(a))
+   fmt.Println(len(s1), cap(s1))
+   fmt.Println(len(s2), cap(s2))
+   /*
+   10 10
+   5 9
+   9 9
+    */
 }
 ```
 #### 2.2 源代码
@@ -704,5 +709,96 @@ func main() {
  */
 ```
 #### 2.3 拷贝
- - 使用copy()可以拷贝切片，并且此时两个切片底层数组地址不同。
- - 拷贝时，去两个切片长度的最小值进行拷贝
+ - 使用copy(new,old)可以拷贝切片，并且此时两个切片底层数组地址不同。
+ - 拷贝时，去两个切片长度的最小值进行拷贝，拷贝过程中不会发生扩容操作。
+```go
+func main() {
+	a := []int{1, 2, 3, 4, 5}
+	b := make([]int, 3)
+	c := make([]int, 10)
+	copy(b, a)
+	copy(c, a)
+	b[0] = 100
+	fmt.Println(a)
+	fmt.Println(b)
+	fmt.Println(c)
+	/*
+	[1 2 3 4 5]
+	[100 2 3]           //修改不会影响原切片，并且复制不会发生扩容操作
+	[1 2 3 4 5 0 0 0 0 0]
+	 */
+}
+```
+#### 2.4 扩容
+- slice扩容时，会先创建一个大数组，再将原数组数据复制进去，最后再执行append操作。
+- 1.18前，大于等于1024,每次扩容25%; 小于1024，每次扩容一倍 
+- 1.18后，大于256，扩容后的容量计算公式如下：newcap = oldcap+(oldcap+threshold*3)/4; 小于256，每次扩容一倍
+- 过渡更加平滑，避免了2-1.25的突变
+- 实际扩容后的容量不严格等于计算结果，还要考虑到内存对齐等问题
+```go
+//扩容后地址改变
+func main() {
+	a := make([]int, 1, 2)
+	fmt.Println(&a[0])
+	a = append(a, 1)        //未发生扩容
+	fmt.Println(&a[0])
+	a = append(a, 2)        //发生扩容
+	fmt.Println(&a[0])
+	/*
+	0xc00000a0d0
+	0xc00000a0d0
+	0xc0000101c0        //扩容后的地址发生了改变
+	 */
+}
+```
+```go
+// 扩容示例
+func main() {
+	a := make([]int, 256) //第一档
+	b := make([]int, 257) //第二档 
+	c := make([]int, 512)
+	d := make([]int, 1024)
+	a = append(a, 1)
+	b = append(b, 2)
+	c = append(c, 3)
+	d = append(d, 4)
+	fmt.Println(len(a), cap(a))
+	fmt.Println(len(b), cap(b))
+	fmt.Println(len(c), cap(c))
+	fmt.Println(len(d), cap(d))
+}
+/*          b扩容后计算结果应为 513.25，向上取整 514 ， 但实际结果为 608 这其中就经历了内存对齐
+257 512
+258 608
+513 848
+1025 1536
+ */
+```
+#### 2.5 切片表达式
+- 简单表达式[low:high] 表示截取[low,high);low,high均可省略
+- 扩展表达式[low:high:capmax] 只可省略low;capmax用来限制新切片容量，避免对high后底层数组的元素进行修改
+- 作用于字符串时，生成的结果仍为字符串;扩展表达式不能用于字符串
+```go
+//扩展表达式
+func main() {
+	a := [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	b := a[:5]
+	b = append(b, 5555)
+	c := a[:5:5]        //限制切片容量为5 添加元素就会触发扩容操作，改变底层数组指向
+	c = append(c, 6666)
+	fmt.Println(a) // [1 2 3 4 5 5555 7 8 9 10]
+}
+```
+```go
+func main() {
+	a := "lonelysnow"
+	b := a[6:]
+	//c := a[0:6:6] // invalid operation: 3-index slice of string
+	fmt.Println(b)
+	fmt.Println(reflect.TypeOf(b))
+}
+/*
+   snow
+   string
+ */
+```
