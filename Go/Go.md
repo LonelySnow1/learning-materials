@@ -790,15 +790,84 @@ func main() {
 }
 ```
 ```go
+//用于字符串
 func main() {
 	a := "lonelysnow"
 	b := a[6:]
 	//c := a[0:6:6] // invalid operation: 3-index slice of string
 	fmt.Println(b)
-	fmt.Println(reflect.TypeOf(b))
+	fmt.Println(reflect.TypeOf(b)) // 查看截取的类型
 }
 /*
    snow
    string
  */
+```
+
+
+### 3. map
+#### 3.1 初始化
+- var/new声明nil map;make初始化map同时可以指定容量;字面量;
+- 向nil map中插入会报panic
+```go
+func main() {
+	var m1 map[int]int 		//panic: assignment to entry in nil map
+	m2 := *new(map[int]int)	// panic: assignment to entry in nil map
+	m3 := make(map[int]int,10)
+	m4 := map[int]int{}
+	m1[1] = 2
+	m2[1] = 3
+	m3[1] = 4
+	m4[1] = 5
+}
+```
+
+#### 3.2 增删改查
+基础增删改查如下
+```go
+func main() {
+	m4 := map[int]int{}
+	m4[1] = 10			//增
+	m4[1] = 20			//改
+	delete(m4, 1)	    //删
+	v, exist := m4[1]	//查
+	if exist {
+		fmt.Println(v)
+	}
+}
+```
+- 若修改的时候，键不存在，则会新增
+- 可以对不存在的键进行删除，不会报错
+- 查询的时候，如果键不存在，返回：(零值,false)
+```go
+func main() {
+	m4 := map[int]int{}
+	m4[2] = 20              //修改没有的键就是新增
+	delete(m4, 0)		    //没有key：0的键也不会报错
+	v, exist := m4[1]
+	fmt.Println(v, exist)	//0 false
+}
+```
+- map并不是线程安全的，并发读写会触发panic
+```go
+func main() {
+	m4 := map[int]int{}
+	go func() {
+		for {
+			m4[0] = 10
+		}
+	}()
+	go func() {
+		for {
+			a, b := m4[0]   //fatal error: concurrent map read and map write
+			fmt.Println(a, b) // 通常情况下应该是 0 false 但偶尔能在写的空窗期读到 10 true
+		}
+	}()
+	go func() {
+		for {
+			m4[1] = 10      //fatal error: concurrent map writes
+		}
+	}()
+	time.Sleep(2 * time.Second)
+}
 ```
