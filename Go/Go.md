@@ -804,7 +804,6 @@ func main() {
  */
 ```
 
-
 ### 3. map
 #### 3.1 初始化
 - var/new声明nil map;make初始化map同时可以指定容量;字面量;
@@ -937,3 +936,6 @@ type bmap struct {
 - 等量：溢出桶太多了，有的都空了，重新排一下，减少一下溢出桶
 
 如果处于扩容过程中，新增操作会直接在新buckets中进行， 但仍从oldbuckets开始寻找
+
+### 4. struct
+
