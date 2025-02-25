@@ -965,7 +965,7 @@ type student struct {
 #### 4.2 内嵌字段
 内嵌字段大体上有两种方式:显式指定(m1)和隐式指定(m2)
 - 显式指定就相当于把目标结构体当作字段，调用时需要先调用这个字段，在调用目标结构体中的信息
-- 隐式指定相当于把目标结构体中的所有字段都在新结构体中创建了一次，同时创建同名目标结构体字段[指与base同名]
+- 隐式指定相当于把目标结构体中的所有字段都在新结构体中创建了一次，并且指向嵌入结构体内部。同时创建同名嵌入结构体对象[指与base同名]
 - 显式创建同名结构体字段 ≠ 隐式指定
 ```go
 type base struct {
@@ -1006,4 +1006,325 @@ func main() {
 	a3.base.Value = 4
 }
 ```
+当内嵌字段中的字段与结构体中得字段同名时：
+- 直接调用时是指定当前结构体中显式定义的字段，但嵌入结构体中的字段仍可通过嵌入类型进行调用
+- 方法同理
+```go
+//数据
+func main() {
+	a1 := m1{}
+	a1.Value = "hello world"
+	a1.base.Value = 1
+	fmt.Println(a1)
+	//获取a1中的所有字段类型
+	t := reflect.TypeOf(a1)
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldType := field.Type
+		fmt.Printf("Field: %s, Type: %s\n", field.Name, fieldType.Name())
+	}
+}
 
+type base struct {
+	Value int
+}
+
+type m1 struct {
+	Value string
+	base
+}
+/*
+{hello world {1}}
+Field: Value, Type: string
+Field: base, Type: base
+ */
+```
+```go
+//方法
+func main() {
+   a1 := m1{}
+   a1.test()
+   a1.base.test()
+   fmt.Println(a1)
+   //获取a1中的所有字段类型
+   t := reflect.TypeOf(a1)
+   for i := 0; i < t.NumField(); i++ {
+      field := t.Field(i)
+      fieldType := field.Type
+      fmt.Printf("Field: %s, Type: %s\n", field.Name, fieldType.Name())
+   }
+}
+
+type base struct {
+   Value int
+}
+
+func (b *base) test() {
+   b.Value = 1
+}
+func (m *m1) test() {
+   m.Value = "hello world"
+}
+
+type m1 struct {
+   Value string
+   base
+}
+/*
+{hello world {1}}
+Field: Value, Type: string
+Field: base, Type: base
+ */
+```
+#### 4.3 可见性
+ - 首字母大写表示该字段/方法/结构体为可导出的，反之为不可导出的
+ - 在同一个包内，不区分是否可导出，都可访问；包外只能访问可导出的字段/方法/结构体
+ - 不可导出的字段不可以进行序列化（转化为json）
+ - 可通过可导出的方法去操作不可导出的字段
+```go
+// test/test1.go
+package test
+
+type User struct {
+   Name string
+   age  int
+}
+
+func (u *User) Test() {
+   u.Name = "hello"
+   u.age = 18
+}
+
+func (u *User) test() {
+   u.Name = "world"
+   u.age = 81
+}
+
+type student struct {
+   Name string
+   age  int
+}
+```
+```go
+//main.go
+package main
+
+import (
+   "fmt"
+   "test/test"
+)
+
+func main() {
+   a := test.User{}
+   //b := test.student{} // 不能在包外访问未导出结构体
+   a.Name = "123"
+   //a.age = 123 // 不能在包外访问未导出字段
+   a.Test()
+   //a.test() // 不能在包外访问未导出方法
+   fmt.Println(a)
+   /*
+      {hello 18}
+    */
+}
+```
+#### 4.4 方法与函数
+##### 4.4.1 区别
+- 方法定义是必须有一个接收器(receiver)；函数不需要
+- 大部分情况下，方法的调用需要有一个对象；函数不需要
+- 由于go中的所有传递都是值传递，也就是将数据复制一份再调用，所以如果想要修改原本对象的值，就要传递指针，进行引用传递
+```go
+func 函数名 (参数) 返回值类型 {函数体} //函数定义
+func (接收器) 方法名  (参数) 返回值类型 {函数体} // 方法定义
+```
+```go
+func main() {
+	a := User{}
+	a.setName() // 方法调用
+	fmt.Println(a)
+	setName(&a) // 函数调用
+	fmt.Println(a)
+}
+/*
+   {world 0}
+   {hello 0}
+ */
+
+type User struct {
+	Name string
+	age  int
+}
+//函数
+func setName(u *User) {
+	u.Name = "hello"
+}
+//方法
+func (u *User) setName() {
+	u.Name = "world"
+}
+```
+值传递时可以通过返回值的方式修改目标对象
+```go
+func main() {
+	a := User{}
+	a = a.setName() //需要显式给原变量赋值
+	fmt.Println(a)
+	a = setName(a)  //需要显式给原变量赋值
+	fmt.Println(a)
+}
+
+type User struct {
+	Name string
+	age  int
+}
+
+func setName(u User) User {
+	u.Name = "hello"
+	return u
+}
+func (u User) setName() User {
+	u.Name = "world"
+	return u
+}
+```
+##### 4.4.2 闭包
+说到函数和方法，就必须说一下闭包
+
+什么是闭包？
+>简单来说，就是函数内部引用函数外部变量，导致变量生命周期发生变化。这样的函数就叫做闭包
+> 
+> 常见于函数返回值为另一个函数时
+```go
+package main
+
+import "fmt"
+
+func main() {
+   b := test()
+   fmt.Println(b())
+   fmt.Println(b())
+}
+
+func test() func() int {
+   a := 1
+   return func() int {
+      a++
+      return a
+   }
+}
+```
+上面的函数导致变量a无法正常释放，导致变量逃逸
+```shell
+go build -gcflags="-m" main.go
+# command-line-arguments
+./main.go:11:6: can inline test
+./main.go:13:9: can inline test.func1
+./main.go:6:11: inlining call to test
+./main.go:13:9: can inline main.test.func1
+./main.go:7:15: inlining call to main.test.func1
+./main.go:7:13: inlining call to fmt.Println
+./main.go:8:15: inlining call to main.test.func1
+./main.go:8:13: inlining call to fmt.Println
+./main.go:6:11: func literal does not escape
+./main.go:7:13: ... argument does not escape
+./main.go:7:15: ~R0 escapes to heap
+./main.go:8:13: ... argument does not escape
+./main.go:8:15: ~R0 escapes to heap
+./main.go:12:2: moved to heap: a
+./main.go:13:9: func literal escapes to heap
+```
+#### 4.5 Tag 字段标签
+##### 4.5.1定义
+在reflect包中提供了获取字段名称、类型、Tag的方法（上文展示过获取名称和类型）
+
+结构体StructField表示结构体的一个字段(reflect/type.go)
+```go
+// A StructField describes a single field in a struct.
+type StructField struct {
+	// Name is the field name.
+	Name string
+
+	// PkgPath is the package path that qualifies a lower case (unexported)
+	// field name. It is empty for upper case (exported) field names.
+	// See https://golang.org/ref/spec#Uniqueness_of_identifiers
+	PkgPath string
+
+	Type      Type      // field type
+	Tag       StructTag // field tag string
+	Offset    uintptr   // offset within struct, in bytes
+	Index     []int     // index sequence for Type.FieldByIndex
+	Anonymous bool      // is an embedded field
+}
+
+type StructTag string 
+```
+##### 4.5.2 Tag规范
+StructTag本质上就是字符串，理论上任何形式都符合规范。但通常情况下约定，Tag的格式应该是key:"value"
+- key:非空字符串，不能包含控制字符，空格，引号，冒号
+- value：双引号包围的字符串
+- 冒号前后不能有空格，多个value用逗号隔开，key之间用空格隔开
+- key一般表示用途，value表示控制指令；
+
+##### 4.5.3 Tag意义
+- Go语言反射机制可以给结构体成员赋值，用Tag可以决定赋值的动作
+- 可以使用定义好的Tag规则，参考规则就可以继续不同的操作
+```go
+//仅对Tag值为true的字段赋值（Tag决定赋值动作）
+type Person struct {
+	Name string `assign:"true"`
+	Age  int    `assign:"false"`
+}
+
+func assignValues(v interface{}) {
+	val := reflect.ValueOf(v).Elem() // 获取指针指向的值
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		tag := typ.Field(i).Tag.Get("assign") // 获取字段的tag
+
+		if tag == "true" {
+			// 根据字段类型赋值
+			switch field.Kind() {
+			case reflect.String:
+				field.SetString("Default Name")
+			case reflect.Int:
+				field.SetInt(25)
+			}
+		}
+	}
+}
+
+func main() {
+	p := &Person{}
+	assignValues(p)
+	fmt.Printf("Person: %+v\n", p)
+}
+/*
+Person: &{Name:Default Name Age:0}
+ */
+```
+下方例子使用了json:"kind,omitempty"，这个tag规定了字段为空不进行序列化；
+```go
+import (
+	"encoding/json"
+	"fmt"
+)
+
+type Person struct {
+	Name  string `json:"kind,omitempty"` //为空时不进行序列化
+	Value int
+	age   int
+}
+
+func main() {
+	// 创建一个 Person 实例
+	p := Person{Name: "", Value: 100, age: 100}
+
+	// 序列化为 JSON
+	jsonData, _ := json.Marshal(p)
+	fmt.Println(string(jsonData)) 
+	/*
+	{"Value":100}
+	 */
+}
+```
