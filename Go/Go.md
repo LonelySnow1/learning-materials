@@ -937,5 +937,73 @@ type bmap struct {
 
 如果处于扩容过程中，新增操作会直接在新buckets中进行， 但仍从oldbuckets开始寻找
 
-### 4. struct
+### 4. struct 结构体
+go的结构体类似于其他语言中的class，主要区别就是go的结构体没有继承这一概念，但可以使用类型嵌入来实现相似功能。
+#### 4.1 初始化
+使用type关键字来定义一个新的类型，struct将新类型限定为结构体类型。
+
+结构体中的字段可以为任何类型，但是包含一些特殊类型 如：接口，管道，函数，指针的时候要格外注意
+```go
+//type定义一个新类型
+type newInt int
+
+//type定义一个简单的结构体
+type base struct{
+   value int   
+}
+
+//type定义一个复杂的结构体
+type student struct {
+   Name string
+   age  int
+   c    interface{}
+   d    func() int
+   e    func()
+   base     //将base类型嵌入到了student类型中
+}
+```
+#### 4.2 内嵌字段
+内嵌字段大体上有两种方式:显式指定(m1)和隐式指定(m2)
+- 显式指定就相当于把目标结构体当作字段，调用时需要先调用这个字段，在调用目标结构体中的信息
+- 隐式指定相当于把目标结构体中的所有字段都在新结构体中创建了一次，同时创建同名目标结构体字段[指与base同名]
+- 显式创建同名结构体字段 ≠ 隐式指定
+```go
+type base struct {
+	Value int
+}
+//显式指定
+type m1 struct {
+	b base
+}
+
+//隐式指定
+type m2 struct {
+	base
+}
+
+//显式指定同名字段
+type m3 struct {
+   base base
+}
+```
+对上述结构体进行调用:
+- 只有隐式指定直接操作被嵌入结构体内的数据；
+- 隐式指定后，直接操作嵌入结构体中的数据和通同名结构体操作作用一样
+```go
+func main() {
+	a1 := m1{}
+	a2 := m2{}
+	a3 := m3{}
+	//显式指定只能通过嵌入结构体进行操作
+	// a1.Value = 1 //a1.Value undefined (type m2 has no field or method Value)
+	a1.b.Value = 2
+	//隐式指定两种操作数据方法操作的是同一个变量
+	a2.Value = 2
+	a2.base.Value = 3
+	fmt.Println(a2.Value) //3
+	//显式指定同名变量 ≠ 隐式指定 
+	// a3.Value = 3 //a3.Value undefined (type m3 has no field or method Value)
+	a3.base.Value = 4
+}
+```
 
