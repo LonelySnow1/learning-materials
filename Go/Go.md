@@ -1360,3 +1360,78 @@ func main() {
 #### 5.2 常量寻址
 - 常量的值在编译时就已经确定好了，并且不会改变，直接被嵌入到代码中，因此不会分配内存
 - 由于常量通常会被编译器在预处理阶段直接展开,作为指令数据使用，因此常量是无法寻址的
+
+### 6. sync.map
+#### 6.1 基本使用
+- 初始化直接可以通过var来创建空sync.map(并不是nil)
+- 声明后的map可以直接使用
+```go
+	var m sync.Map
+```
+增删改查
+- sync.map可储存任何类型的键值对，取出后类型为interface{},需要进行类型断言
+```go
+func main() {
+	var m sync.Map
+	//增
+	m.Store(1, 100)
+	m.Store("2", 200)
+	m.Store(3, "300")
+	//删
+	m.Delete(1)
+	//改
+	m.Store("3", 100)
+	//查
+	fmt.Println(m.Load(1))
+	fmt.Println(m.Load("2"))
+	fmt.Println(m.Load(3))
+	fmt.Println(m.Load("3"))
+}
+/*
+<nil> false
+200 true
+300 true
+100 true
+ */
+```
+还有三个常用方法
+- LoadOrStore(k,v) 有key返回对应值+false；无key插入并返回插入值+true
+- LoadAndDelete(k) 有key查询并删除 返回值+true；无key返回nil+false
+- Range(func(k, v interface{}) bool) 函数中写每次遍历执行的操作
+```go
+func main() {
+	var m sync.Map
+	k, v := m.LoadOrStore(1, 2)
+	k1, v1 := m.LoadOrStore(1, 200)
+	fmt.Println(k, v)
+	fmt.Println(k1, v1)
+	fmt.Println("------------------")
+	k2, v2 := m.LoadAndDelete(1)
+	k3, v3 := m.LoadAndDelete(1)
+	fmt.Println(k2, v2)
+	fmt.Println(k3, v3)
+	fmt.Println("-------------------")
+	m.Store(1, 2)
+	m.Store(2, 200)
+	m.Store(3, 200)
+	m.Range(func(k, v interface{}) bool {
+		fmt.Println(k, v)
+		return true
+	})
+}
+/*
+2 false
+2 true
+------------------
+2 true
+<nil> false
+-------------------
+1 2
+2 200
+3 200
+ */
+```
+注意点：
+- 特定场景下性能提升：比加锁性能更好，但增加了内存负担，GC压力变大
+- 类型断言需要特别注意
+- 不能进行拷贝和传递
