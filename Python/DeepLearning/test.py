@@ -8,7 +8,7 @@ raw_df = pd.read_csv('./data/train.csv')
 # 标签
 label = raw_df['label'].values  # DataFarme -> numpy.ndarray 类型转换
 raw_df = raw_df.drop(['label'], axis=1)
-feature = raw_df.values
+feature = raw_df.values / 255.0
 
 # 划分数据集，测试集 + 训练集
 train_feature = feature[:int(len(feature) * 0.8)]
@@ -30,13 +30,13 @@ model = nn.Sequential(
     nn.Linear(512, 512),
     nn.ReLU(),
     nn.Linear(512, 10),
-    nn.Softmax()  # 激活函数 将输出转化为概率
+    # nn.Softmax()  # 激活函数 将输出转化为概率
 ).cuda()  # 放入显存
 
 # 梯度下降
 lossfunction = nn.CrossEntropyLoss()  # 交叉熵损失函数
 # 优化器 Adam
-optimizer = torch.optim.Adam(params=model.parameters(), lr=0.0001)  # 优化哪里，学习率
+optimizer = torch.optim.Adam(params=model.parameters(), lr=0.001)  # 优化哪里，学习率
 # 训练轮数
 for i in range(100):
     # 清空优化器的梯度(偏导)
