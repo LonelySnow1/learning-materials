@@ -36,28 +36,48 @@ import torch.optim as optim
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 20, 5, 5)  # 和MNIST不一样的地方，channel要改成3，步长我这里加快了，不然层数太多。
-        self.conv2 = nn.Conv2d(20, 50, 4, 1)
-        self.fc1 = nn.Linear(50 * 6 * 6, 200)
-        self.fc2 = nn.Linear(200, 2)  # 这个也不一样，因为是2分类问题。
+        # 卷积块1：Conv + BatchNorm + ReLU + MaxPool
+        self.conv_block1 = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),  # 3→32通道，padding=1保持尺寸
+            nn.BatchNorm2d(32),  # BatchNorm：加速收敛，稳定训练
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 尺寸减半：150→75
+        )
+        # 卷积块2
+        self.conv_block2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  # 32→64通道
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 75→37（整数除法）
+        )
+        # 卷积块3
+        self.conv_block3 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),  # 64→128通道
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 37→18
+        )
+        # 卷积块4
+        self.conv_block4 = nn.Sequential(
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),  # 128→256通道
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 18→9
+        )
+        # 全连接层：先计算输入维度（256通道×9×9尺寸）
+        self.fc1 = nn.Linear(256 * 9 * 9, 512)  # 高维特征压缩
+        self.dropout = nn.Dropout(0.5)  # Dropout：防止过拟合，提升泛化
+        self.fc2 = nn.Linear(512, 2)  # 最终2分类
 
     def forward(self, x):
-        # x是一个batch_size的数据
-        # x:3*150*150
-        x = F.relu(self.conv1(x))
-        # 20*30*30
-        x = F.max_pool2d(x, 2, 2)
-        # 20*15*15
-        x = F.relu(self.conv2(x))
-        # 50*12*12
-        x = F.max_pool2d(x, 2, 2)
-        # 50*6*6
-        x = x.view(-1, 50 * 6 * 6)
-        # 压扁成了行向量，(1,50*6*6)
+        x = self.conv_block1(x)
+        x = self.conv_block2(x)
+        x = self.conv_block3(x)
+        x = self.conv_block4(x)
+        x = x.view(-1, 256 * 9 * 9)  # 展平：(batch, 256*9*9)
         x = F.relu(self.fc1(x))
-        # (1,200)
+        x = self.dropout(x)  # 应用Dropout
         x = self.fc2(x)
-        # (1,2)
         return F.log_softmax(x, dim=1)
 
 
@@ -110,4 +130,6 @@ for epoch in range(num_epochs):
 end_time = time()
 print(f"总训练时间：{end_time - begin_time:.2f}秒")  # 打印总耗时
 
-torch.save(model.state_dict(), '.\data\CatDog.pt')  # 保存w,b
+# torch.save(model.state_dict(), '.\data\CatDog.pt')  # 保存w,b
+
+torch.save(model, '.\data\CatDog.pt')  # 保存完整模型
