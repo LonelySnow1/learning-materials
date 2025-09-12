@@ -1,18 +1,18 @@
 # 第一步：安装依赖
-# pip install ultralytics opencv-python pillow torch
+# pip install ultralytics opencv-python pillow torch langchain
 
 import cv2
 import numpy as np
 from ultralytics import YOLO
 from PIL import ImageDraw, ImageFont, Image
 import platform
+import time  # 用于控制检测间隔
 
 # ---------------------- 1. 加载轻量级检测模型（YOLOv5n，n= nano，最小模型） ----------------------
-# 加载预训练模型（自动下载，仅几MB，支持检测80类物体，其中包含猫（class=15）、狗（class=16））
-model = YOLO('yolov5n.pt')  # 可选：yolov5s.pt（稍大，精度更高）、yolov8n.pt（更新版本）
+model = YOLO(r'../data/yolov5n.pt')  # 可选：yolov5s.pt（稍大，精度更高）、yolov8n.pt（更新版本）
 
 
-# 加载中文字体（与之前一致）
+# 加载中文字体
 def load_pil_chinese_font():
     try:
         os_type = platform.system()
@@ -59,8 +59,8 @@ def draw_chinese_with_pil(frame, text, org, color=(0, 255, 0)):
         return frame
 
 
-# ---------------------- 2. 实时检测（内存消耗极低，每秒30+帧） ----------------------
-def camera_real_time_detect():
+# ---------------------- 2. 定时检测（每0.5秒一次，降低内存消耗） ----------------------
+def camera_timed_detect():
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("错误：无法打开摄像头！")
@@ -69,51 +69,48 @@ def camera_real_time_detect():
     # 配置：仅检测猫（15）、狗（16），置信度阈值0.5
     target_classes = {0: '人', 15: '猫', 16: '狗'}
     confidence_threshold = 0.5
+    detection_interval = 0.5  # 检测间隔时间（秒）
+    last_detection_time = 0  # 上次检测时间戳
+    detected_objs = []  # 存储最新检测结果
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        # 步骤1：模型推理（仅检测目标类别，减少计算）
-        results = model(frame, classes=[0, 15, 16], conf=confidence_threshold, verbose=False)  # verbose=False关闭日志
+        # 获取当前时间
+        current_time = time.time()
 
-        # 步骤2：筛选最优框（仅保留置信度最高的1个）
-        detected_obj = None
-        if results[0].boxes:  # 若有检测结果
-            boxes = results[0].boxes.data.cpu().numpy()  # 格式：[x1,y1,x2,y2,conf,class_id]
-            best_box = boxes[np.argmax(boxes[:, 4])]  # 按置信度取最优
-            x1, y1, x2, y2, conf, cls_id = best_box
-            detected_obj = (int(x1), int(y1), int(x2), int(y2), target_classes[cls_id], conf)
+        # 每隔指定时间执行一次检测
+        if current_time - last_detection_time >= detection_interval:
+            # 执行模型推理
+            results = model(frame, classes=[0, 15, 16], conf=confidence_threshold, verbose=False)
 
-        # 不进行筛选，全部进行保留
-        # detected_objs = []  # 用列表存储所有检测结果
-        # if results[0].boxes:  # 若有检测结果
-        #     boxes = results[0].boxes.data.cpu().numpy()  # 格式：[x1,y1,x2,y2,conf,class_id]
-        #     # 遍历所有检测框
-        #     for box in boxes:
-        #         x1, y1, x2, y2, conf, cls_id = box
-        #         # 将每个检测结果添加到列表
-        #         detected_objs.append((int(x1), int(y1), int(x2), int(y2), target_classes[cls_id], conf))
+            # 更新检测结果
+            detected_objs = []
+            if results[0].boxes:
+                boxes = results[0].boxes.data.cpu().numpy()
+                for box in boxes:
+                    x1, y1, x2, y2, conf, cls_id = box
+                    detected_objs.append((int(x1), int(y1), int(x2), int(y2), target_classes[cls_id], conf))
 
-        # 步骤3：绘制结果
-        if detected_obj:
-            x1, y1, x2, y2, cls, conf = detected_obj
+            # 更新上次检测时间
+            last_detection_time = current_time
+            # 可选：显示检测时间点，方便调试
+            # print(f"执行检测: {time.strftime('%H:%M:%S', time.localtime(current_time))}")
+
+        # 绘制最新检测结果（即使未执行新检测，也显示上一次的结果）
+        for obj in detected_objs:
+            x1, y1, x2, y2, cls, conf = obj
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             # 更可靠的文本位置计算
             text_y = y1 - 10 if y1 > 40 else y2 + 30
             frame = draw_chinese_with_pil(frame, f"{cls}：{conf:.2f}", (x1, text_y))
 
-        # 将结果全部展示
-        # if detected_objs:
-        #     for detected_obj in detected_objs:
-        #         x1, y1, x2, y2, cls, conf = detected_obj
-        #         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        #         # 更可靠的文本位置计算
-        #         text_y = y1 - 10 if y1 > 40 else y2 + 30
-        #         frame = draw_chinese_with_pil(frame, f"{cls}：{conf:.2f}", (x1, text_y))
+        # 显示检测间隔信息
+        frame = draw_chinese_with_pil(frame, f"检测间隔: {detection_interval}秒", (10, 30), (255, 0, 0))
 
-        cv2.imshow("CatDog - YOLOv5n", frame)
+        cv2.imshow("SI - YOLOv5n", frame)  # Scheduled inspection 定时检测
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -122,4 +119,4 @@ def camera_real_time_detect():
 
 
 if __name__ == "__main__":
-    camera_real_time_detect()
+    camera_timed_detect()

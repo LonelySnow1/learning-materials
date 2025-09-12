@@ -157,7 +157,7 @@ if __name__ == "__main__":
     # 1. 手写数字照片路径（支持png/jpg/jpeg格式，用r前缀避免转义问题）
     HANDWRITTEN_IMAGE_PATH = r"D:/下载/QQ Flies/4.png"  # 你的手写照片路径
     # 2. 训练好的模型权重路径（训练时保存的mymodel.pt路径）
-    TRAINED_MODEL_PATH = r"./data/mymodel.pt"  # 你的模型路径
+    TRAINED_MODEL_PATH = r"../data/mymodel.pt"  # 你的模型路径
 
     # -------------------------- 可选参数调整（根据预处理图像效果修改） --------------------------
     NEED_INVERT = True  # 是否需要反色：看预处理图2是否为“白底黑字”，不是则改True

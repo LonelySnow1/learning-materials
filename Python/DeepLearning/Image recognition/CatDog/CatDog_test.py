@@ -109,7 +109,7 @@ def predict_single_image(model, device, image_path, transform):
 # ---------------------- 4. 执行预测 ----------------------
 if __name__ == "__main__":
     # 注意：这里传入的是“参数文件路径”（best_model_params.pth）
-    PARAM_PATH = r"./data/CatDog.pt"
+    PARAM_PATH = r"../data/CatDog.pt"
     # model, device = load_model_with_params(PARAM_PATH)
     model, device = load_complete_model(PARAM_PATH)
     transform = get_transform()
