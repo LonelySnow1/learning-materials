@@ -67,7 +67,7 @@ def camera_real_time_detect():
         return
 
     # 配置：仅检测猫（15）、狗（16），置信度阈值0.5
-    target_classes = {15: '猫', 16: '狗'}
+    target_classes = {0: '人', 15: '猫', 16: '狗'}
     confidence_threshold = 0.5
 
     while True:
@@ -76,7 +76,7 @@ def camera_real_time_detect():
             break
 
         # 步骤1：模型推理（仅检测目标类别，减少计算）
-        results = model(frame, classes=[15, 16], conf=confidence_threshold, verbose=False)  # verbose=False关闭日志
+        results = model(frame, classes=[0, 15, 16], conf=confidence_threshold, verbose=False)  # verbose=False关闭日志
 
         # 步骤2：筛选最优框（仅保留置信度最高的1个）
         detected_obj = None
@@ -86,6 +86,16 @@ def camera_real_time_detect():
             x1, y1, x2, y2, conf, cls_id = best_box
             detected_obj = (int(x1), int(y1), int(x2), int(y2), target_classes[cls_id], conf)
 
+        # 不进行筛选，全部进行保留
+        # detected_objs = []  # 用列表存储所有检测结果
+        # if results[0].boxes:  # 若有检测结果
+        #     boxes = results[0].boxes.data.cpu().numpy()  # 格式：[x1,y1,x2,y2,conf,class_id]
+        #     # 遍历所有检测框
+        #     for box in boxes:
+        #         x1, y1, x2, y2, conf, cls_id = box
+        #         # 将每个检测结果添加到列表
+        #         detected_objs.append((int(x1), int(y1), int(x2), int(y2), target_classes[cls_id], conf))
+
         # 步骤3：绘制结果
         if detected_obj:
             x1, y1, x2, y2, cls, conf = detected_obj
@@ -94,7 +104,16 @@ def camera_real_time_detect():
             text_y = y1 - 10 if y1 > 40 else y2 + 30
             frame = draw_chinese_with_pil(frame, f"{cls}：{conf:.2f}", (x1, text_y))
 
-        cv2.imshow("猫狗实时检测（YOLOv5n，低内存）", frame)
+        # 将结果全部展示
+        # if detected_objs:
+        #     for detected_obj in detected_objs:
+        #         x1, y1, x2, y2, cls, conf = detected_obj
+        #         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        #         # 更可靠的文本位置计算
+        #         text_y = y1 - 10 if y1 > 40 else y2 + 30
+        #         frame = draw_chinese_with_pil(frame, f"{cls}：{conf:.2f}", (x1, text_y))
+
+        cv2.imshow("CatDog - YOLOv5n", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

@@ -228,7 +228,7 @@ def camera_interval_detect():
         else:
             frame = draw_chinese_with_pil(frame, "未检测到猫/狗", (20, 60), (0, 0, 255))
 
-        cv2.imshow("优化内存的猫狗检测", frame)
+        cv2.imshow("CatDog - CNN", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
