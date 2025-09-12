@@ -132,4 +132,4 @@ print(f"总训练时间：{end_time - begin_time:.2f}秒")  # 打印总耗时
 
 # torch.save(model.state_dict(), '.\data\CatDog.pt')  # 保存w,b
 
-torch.save(model, '.\data\CatDog.pt')  # 保存完整模型
+torch.save(model, '../data/CatDog.pt')  # 保存完整模型

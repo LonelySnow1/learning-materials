@@ -9,7 +9,7 @@ import platform
 
 # ---------------------- 1. 加载轻量级检测模型（YOLOv5n，n= nano，最小模型） ----------------------
 # 加载预训练模型（自动下载，仅几MB，支持检测80类物体，其中包含猫（class=15）、狗（class=16））
-model = YOLO('yolov5n.pt')  # 可选：yolov5s.pt（稍大，精度更高）、yolov8n.pt（更新版本）
+model = YOLO(r'../data/yolov5n.pt')  # 可选：yolov5s.pt（稍大，精度更高）、yolov8n.pt（更新版本）
 
 
 # 加载中文字体（与之前一致）

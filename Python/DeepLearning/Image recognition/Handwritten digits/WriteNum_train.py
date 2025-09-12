@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import pandas as pd
 
-raw_df = pd.read_csv('./data/train.csv')
+raw_df = pd.read_csv('../data/train.csv')
 # print(raw_df)
 # 特征
 # 标签
@@ -56,7 +56,7 @@ for i in range(100):
     loss = lossfunction(predict, test_label)
     print("test loss:{} test acc:{}".format(loss.item(), test_acc.item()))
 
-torch.save(model.state_dict(), '.\data\mymodel.pt')  # 保存w,b
+torch.save(model.state_dict(), '..\data\mymodel.pt')  # 保存w,b
 
 # # 加载模型文件
 # params = torch.load('E:\maybe_use\mymodel.pt')

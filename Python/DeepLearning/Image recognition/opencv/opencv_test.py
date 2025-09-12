@@ -54,7 +54,7 @@ class CNN(nn.Module):
 
 
 # ---------------------- 2. 加载模型并导出ONNX ----------------------
-model = torch.load('./data/CatDog.pt')
+model = torch.load('../data/CatDog.pt')
 model.eval()
 device = next(model.parameters()).device
 dummy_input = torch.randn(1, 3, 150, 150, device=device)
