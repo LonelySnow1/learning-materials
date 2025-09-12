@@ -1,3 +1,6 @@
+# 使用Langchain集成llm，为识别信息输出一段简短的语句
+# 使用Langchain结合日志系统进行轻量时序分析
+
 import cv2
 import numpy as np
 from ultralytics import YOLO
