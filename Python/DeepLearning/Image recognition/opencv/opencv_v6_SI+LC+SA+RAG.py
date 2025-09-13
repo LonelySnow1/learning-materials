@@ -24,11 +24,11 @@ need_regenerate.clear()
 
 # ---------------------- 异常分析相关全局变量 ----------------------
 behavior_history = []  # 行为历史记录：(时间戳, 目标列表)
-HISTORY_MAX_LENGTH = 60  # 历史记录最大长度 0.5s检测一次，存半分钟
+HISTORY_MAX_LENGTH = 60  # 历史记录最大长度 0.5s检测一次，60就是存半分钟，方便时序模型进行分析
 is_abnormal = False  # 异常状态标记
 abnormal_desc = ""  # 异常结果描述
 last_abnormal_analysis_time = 0  # 上次异常分析时间戳
-abnormal_analysis_interval = 31  # 时序分析间隔（秒），适配API限频
+abnormal_analysis_interval = 31  # 时序分析间隔（秒） moonshot接口限频 3 RPM/min 所以只能默认半分钟一次（在不进行restart的情况下）
 
 # ---------------------- 初始化LLM与YOLO模型 ----------------------
 try:
@@ -45,78 +45,57 @@ except Exception as e:
     print(f"YOLO模型加载错误: {e}")
     exit(1)
 
-# 1. 初始化Embedding模型（将文本转为向量）
+# 1. 初始化Embedding模型
 try:
     embedding_model = SentenceTransformer(
         "all-MiniLM-L6-v2",
-        cache_folder="../data/all-MiniLM-L6-v2"  # 本地缓存路径
+        cache_folder="../data/all-MiniLM-L6-v2"
     )
-    # 测试嵌入模型是否正常工作
-    test_embedding = embedding_model.encode(["test"], convert_to_tensor=False)
-    if test_embedding is None or len(test_embedding) == 0:
+    # 测试模型有效性
+    if not embedding_model.encode(["test"]).size:
         raise ValueError("嵌入模型无法生成有效向量")
 except Exception as e:
     print(f"Embedding模型初始化错误: {e}")
     exit(1)
 
 
-# ---------------------- 自定义Embeddings类（适配LangChain规范） ----------------------
+# 2. 自定义Embeddings类（适配LangChain）
 class CustomEmbeddings(Embeddings):
-    """符合LangChain规范的自定义Embeddings类，包装SentenceTransformer模型"""
-
     def __init__(self, model):
-        self.model = model  # SentenceTransformer模型实例
-        # 预计算嵌入维度（用于Qdrant集合初始化）
+        self.model = model
         self.dimension = len(self.embed_query("test"))
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        """生成文档向量（批量处理）"""
-        try:
-            embeddings = self.model.encode(texts, convert_to_tensor=False)
-            return embeddings.tolist()
-        except Exception as e:
-            print(f"文档嵌入失败: {e}")
-            return []
+        return self.model.encode(texts).tolist()
 
     def embed_query(self, text: str) -> List[float]:
-        """生成查询向量（单条处理）"""
-        try:
-            embedding = self.model.encode(text, convert_to_tensor=False)
-            return embedding.tolist()
-        except Exception as e:
-            print(f"查询嵌入失败: {e}")
-            return []
+        return self.model.encode(text).tolist()
 
 
-# 2. 初始化Qdrant客户端与向量存储（修复核心）
-QDRANT_COLLECTION = "abnormal_logs"  # 向量集合名称
+# 3. 初始化Qdrant向量存储
+QDRANT_COLLECTION = "abnormal_logs"
 try:
-    # 确保数据目录存在
+    # 初始化客户端和存储路径
     qdrant_data_path = "../data/qdrant_db"
     os.makedirs(qdrant_data_path, exist_ok=True)
-
-    # 初始化Qdrant客户端
     qdrant_client = QdrantClient(path=qdrant_data_path)
 
-    # 创建符合规范的Embeddings实例
+    # 初始化嵌入器
     custom_embeddings = CustomEmbeddings(embedding_model)
 
-    # 检查集合是否存在，不存在则创建（指定正确向量维度）
-    if not qdrant_client.collection_exists(collection_name=QDRANT_COLLECTION):
+    # 创建集合（如不存在）
+    if not qdrant_client.collection_exists(QDRANT_COLLECTION):
         qdrant_client.create_collection(
             collection_name=QDRANT_COLLECTION,
-            vectors_config={
-                "size": custom_embeddings.dimension,  # 匹配模型输出维度
-                "distance": "Cosine"  # 余弦相似度（适合文本向量）
-            }
+            vectors_config={"size": custom_embeddings.dimension, "distance": "Cosine"}
         )
-        print(f"创建Qdrant集合: {QDRANT_COLLECTION}，向量维度: {custom_embeddings.dimension}")
+        print(f"创建集合: {QDRANT_COLLECTION} (维度: {custom_embeddings.dimension})")
 
-    # 初始化Qdrant向量存储（使用规范的embeddings参数）
+    # 初始化向量存储
     qdrant_vectorstore = Qdrant(
         client=qdrant_client,
         collection_name=QDRANT_COLLECTION,
-        embeddings=custom_embeddings  # 传入规范Embeddings实例，消除警告
+        embeddings=custom_embeddings
     )
 except Exception as e:
     print(f"Qdrant初始化错误: {e}")
@@ -505,7 +484,7 @@ def camera_timed_detect_with_llm():
             print(f"绘制状态信息错误: {e}")
 
         # 显示画面
-        cv2.imshow("YOLOv5n + LLM 智能监控（带异常分析）", frame)
+        cv2.imshow("YOLOv5n + LLM + SA +RAG", frame)
 
         # 处理退出事件
         if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -287,7 +287,7 @@ def camera_timed_detect_with_llm():
         )
 
         # 显示画面
-        cv2.imshow("YOLOv5n + LLM 智能监控（带异常分析）", frame)
+        cv2.imshow("YOLOv5n + LLM + SA", frame)
 
         # 处理退出事件
         if cv2.waitKey(1) & 0xFF == ord('q'):
