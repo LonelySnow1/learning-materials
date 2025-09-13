@@ -227,7 +227,7 @@ def analyze_abnormal_behavior(behavior_history, llm):
 
             # 写入文本日志
             try:
-                log_dir = "logs"
+                log_dir = "../data/logs"
                 os.makedirs(log_dir, exist_ok=True)
                 with open(f"{log_dir}/abnormal_log.txt", "a", encoding="utf-8") as f:
                     f.write(f"{full_abnormal_log}\n")
