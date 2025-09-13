@@ -303,8 +303,7 @@ def query_abnormal_logs(user_question, llm, vectorstore, embeddings):
 def listen_terminal_input():
     print("\n=== 终端指令说明 ===")
     print("1. 输入 'restart' 并回车：重新生成介绍文字")
-    print("2. 输入 'q' 并回车：退出程序")
-    print("3. 输入 'query 问题' 并回车：查询异常日志（如'query 今天14点有哪些异常'）")
+    print("2. 输入 'query 问题' 并回车：查询异常日志")
     print("===================\n")
 
     while True:
@@ -314,10 +313,6 @@ def listen_terminal_input():
             if user_input == "restart":
                 print(f"[{time.strftime('%H:%M:%S')}] 收到restart指令，将重新生成介绍")
                 need_regenerate.set()
-            elif user_input == "q":
-                print(f"[{time.strftime('%H:%M:%S')}] 收到退出指令，程序即将关闭")
-                cv2.destroyAllWindows()
-                os._exit(0)
             elif user_input.startswith("query "):
                 user_question = user_input[len("query "):].strip()
                 if not user_question:
@@ -328,7 +323,7 @@ def listen_terminal_input():
                 answer = query_abnormal_logs(user_question, llm, qdrant_vectorstore, custom_embeddings)
                 print(f"[{time.strftime('%H:%M:%S')}] 问答结果：{answer}\n")
             else:
-                print(f"[{time.strftime('%H:%M:%S')}] 未知指令，请输入'restart'或'q'")
+                print(f"[{time.strftime('%H:%M:%S')}] 未知指令，请输入'restart'或'query'")
         except Exception as e:
             print(f"终端输入处理错误: {e}")
 
