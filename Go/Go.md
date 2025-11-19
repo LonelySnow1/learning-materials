@@ -1492,3 +1492,50 @@ M持有P之后会采用轮询的方式去依次执行P本地队列里的携程�
 #### V1.8 混合写屏障
 当程序修改堆对象中的指针时（即 “堆→堆” 指针赋值），同时标记 “新引用的对象”（插入屏障逻辑）和 “被替换的旧对象”（删除屏障逻辑）；而栈上的指针修改不触发写屏障。
 避免了并发标记阶段对栈的重新扫描（无需 STW 暂停用户程序），大幅减少了 GC 的停顿时间，让 Go 的 GC 延迟更稳定，支撑高并发场景。
+
+### 4. Gin框架中的九路前缀树 / 九颗前缀树 / 基数树(Radix Tree)
+1. 九路前缀树这个词是用来指Gin的路由实现，但实际上Gin的路由实现是由基数树(Radix Tree)来实现的
+2. 对HTTP的每个主要方法分别维护一颗独立的基数树（GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD, CONNECT, TRACE）
+3. **树中的节点主要分为 4 种类型**（root, static, param, catch-all），以实现对静态路径、路径参数和通配符的高效匹配。
+   * root (根节点)： 整棵树的起点，通常代表 /。
+   * static (静态节点)： 默认类型。代表一个固定的字符串路径，如 /users 或 /about。
+   * param (参数节点)： 用于匹配动态路径段。以冒号 : 开头，例如 /:id 或 /:username。它只匹配一个路径段（即到下一个 / 之前的部分）。
+   * catch-all (通配符节点)： 用于匹配剩余的“所有”路径。以星号 * 开头，例如 /*filepath。它必须是路由的最后一部分。
+   * **匹配优先级 ： 静态路由 > 参数路由 > 通配符路由**
+   * 这种设计的优势是速度极快且无回溯，路由查找的时间复杂度与注册的路由数量无关，只与 URL 路径深度相关 (O(k))。
+
+#### 4.1 路由查找过程（Lookup）
+```
+(root, nType=root)
+├── / (Handler 1)
+│
+├── search/ (nType=static)
+│     ├── (Handler 2)
+│     │
+│     ├── :category (nType=param, Handler 3)
+│     │
+│     └── images (nType=static, Handler 4)
+│
+├── support (nType=static, Handler 5)
+│
+└── static/ (nType=static)
+└── *filepath (nType=catch-all, Handler 6)
+```
+如果要请求 GET /search/books ：
+1. 选择树： 确定是 GET 请求，找到 GET 树。
+2. 匹配 (root)：
+3. 匹配 /search/： (root) 的子节点中有 search/ (static 节点)。匹配成功。
+4. 匹配 books： 移动到 search/ 节点，开始匹配 books。
+5. 检查静态 (Static) 子节点： search/ 的静态子节点有 images。books != images。
+6. 检查参数 (Param) 子节点： search/ 有一个参数子节点 :category。
+7. 匹配参数： books 匹配了 :category。
+8. 查找成功：同时，Gin 将 category = "books" 存入上下文中，以便后续 c.Param("category") 获取。
+
+#### 4.2 基数树比前缀树好在哪里，有什么优点？
+基数树是一种压缩的前缀树。与标准前缀树（每个节点只存一个字符）不同，基数树的节点可以存储一整个字符串（公共前缀）。
+* 标准前缀树 (Trie):
+   *  POST -> P -> O -> S -> T
+* 基数树 (Radix Tree):
+   * POST -> (POST) (一个节点)
+Gin采用基数树的原因是可以压缩URL的存储路径
+   * GET /search/images 和 GET /search/videos 可以都压缩到search节点下
