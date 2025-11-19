@@ -1539,3 +1539,16 @@ M持有P之后会采用轮询的方式去依次执行P本地队列里的携程�
    * POST -> (POST) (一个节点)
 Gin采用基数树的原因是可以压缩URL的存储路径
    * GET /search/images 和 GET /search/videos 可以都压缩到search节点下
+
+### 5. Go 语言中 init 函数的执行时机和顺序
+* init 函数在 main 函数执行之前完成
+* 其执行顺序是严格确定的：导入包 → 包内变量初始化 → 包内 init 函数。
+  循环依赖：
+* 在编译期就会报错，阻止程序编译
+* 如果此时运行，Go会给循环依赖的其中一个变量使用其零值先完成初始化，然后报错，避免死锁和程序陷入未定义状态
+```go
+package test
+	imports test/a from main.go
+	imports test/b from a.go
+	imports test/a from b.go: import cycle not allowed
+```
